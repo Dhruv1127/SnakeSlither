@@ -141,6 +141,22 @@ The application is designed for easy deployment to platforms like Replit, with d
 - **Wave Motion Mechanics**: Snake tail moves with wave function when growing
 - **Enhanced Growth System**: Food eating triggers multi-segment growth with visual effects
 - **Comprehensive Integration**: All features working together seamlessly
+
+### July 19, 2025 - Special Abilities & Sound Enhancement Update
+- **Enhanced Audio System**: Added sound effects for start animation (bite, explosion, whoosh)
+- **Goku Special Abilities**: 
+  - Speed Boost (Space key): 2.5x speed multiplier for 2 seconds, 5-second cooldown
+  - Power Ball (Shift key): Launches energy projectile that damages Vegeta on hit
+- **Vegeta AI Abilities**:
+  - Aggressive Mode: Auto-activated AI ability with increased speed and aggression
+  - Power Ball Defense: AI can use similar abilities for balanced gameplay
+- **Visual Effects**: 
+  - Golden Super Saiyan glow during speed boost
+  - Power ball trails and explosion effects
+  - Enhanced particle systems for all abilities
+- **Sound Integration**: All abilities trigger appropriate sound effects
+- **Collision System**: Power balls can hit and damage opponent snakes
+- **Dynamic Coloring**: Snake colors change based on active abilities
 - **Special Abilities System**: Goku speed boost (Space key) and power ball attacks (Shift key)  
 - **Enhanced Sound Effects**: Start animation sound effects, power-up sounds, and ability activation sounds
 - **Power Ball Combat**: Goku can launch energy attacks at Vegeta AI with visual trails and collision detection
