@@ -41,7 +41,7 @@ class StartAnimation {
             screenShake: 0
         };
         
-        // Laser saber
+        // Laser saber - Glowing neon blue/green
         this.laserSaber = {
             x: this.canvas.width + 100,
             y: this.canvas.height / 2,
@@ -49,7 +49,9 @@ class StartAnimation {
             angle: 0,
             length: 200,
             active: true,
-            color: '#ff0000'
+            color: '#00ffff', // Cyan
+            coreColor: '#00ff88', // Neon green
+            glowColor: '#4dd0e1' // Light cyan glow
         };
         
         // Initialize snake segments after other properties are set
@@ -435,14 +437,37 @@ class StartAnimation {
     renderLaserSaber() {
         this.ctx.save();
         
-        // Laser saber blade
-        this.ctx.strokeStyle = this.laserSaber.color;
-        this.ctx.lineWidth = 8;
-        this.ctx.shadowColor = this.laserSaber.color;
-        this.ctx.shadowBlur = 20;
-        
         this.ctx.translate(this.laserSaber.x, this.laserSaber.y);
         this.ctx.rotate(this.laserSaber.angle);
+        
+        // Outer glow
+        this.ctx.strokeStyle = this.laserSaber.glowColor;
+        this.ctx.lineWidth = 20;
+        this.ctx.shadowColor = this.laserSaber.glowColor;
+        this.ctx.shadowBlur = 30;
+        this.ctx.globalAlpha = 0.3;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber.length / 2);
+        this.ctx.lineTo(0, this.laserSaber.length / 2);
+        this.ctx.stroke();
+        
+        // Middle blade
+        this.ctx.strokeStyle = this.laserSaber.color;
+        this.ctx.lineWidth = 12;
+        this.ctx.shadowBlur = 20;
+        this.ctx.globalAlpha = 0.8;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber.length / 2);
+        this.ctx.lineTo(0, this.laserSaber.length / 2);
+        this.ctx.stroke();
+        
+        // Core blade
+        this.ctx.strokeStyle = this.laserSaber.coreColor;
+        this.ctx.lineWidth = 4;
+        this.ctx.shadowBlur = 10;
+        this.ctx.globalAlpha = 1;
         
         this.ctx.beginPath();
         this.ctx.moveTo(0, -this.laserSaber.length / 2);
@@ -452,7 +477,18 @@ class StartAnimation {
         // Saber handle
         this.ctx.fillStyle = '#333333';
         this.ctx.shadowBlur = 0;
-        this.ctx.fillRect(-5, -20, 10, 40);
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillRect(-8, -25, 16, 50);
+        
+        // Handle details
+        this.ctx.strokeStyle = '#666666';
+        this.ctx.lineWidth = 2;
+        for (let i = -15; i <= 15; i += 5) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(-6, i);
+            this.ctx.lineTo(6, i);
+            this.ctx.stroke();
+        }
         
         this.ctx.restore();
     }

@@ -1,24 +1,30 @@
-// AI Enemy Snake
+// AI Enemy Snake - Vegeta (The Prince of Saiyans)
 class AISnake {
     constructor(game) {
         this.game = game;
         this.segments = [];
         this.direction = 0;
         this.targetDirection = 0;
-        this.speed = 3;
-        this.segmentSize = 10;
-        this.segmentSpacing = 14;
-        this.turnSpeed = 0.1;
-        this.color = '#FF5252';
-        this.headColor = '#D32F2F';
+        this.speed = 3.5; // Faster - Vegeta's pride
+        this.segmentSize = 11; // Slightly larger
+        this.segmentSpacing = 15;
+        this.turnSpeed = 0.12;
+        this.name = "Vegeta";
         
-        // AI behavior
+        // Saiyan Prince colors - Royal blue with electric aura
+        this.color = '#1a237e'; // Deep royal blue
+        this.headColor = '#0d47a1'; // Darker royal blue for head
+        this.glowColor = '#3f51b5'; // Electric blue glow
+        this.accentColor = '#ffeb3b'; // Golden yellow accents
+        this.auraColor = '#00e5ff'; // Cyan energy aura
+        
+        // AI behavior - More aggressive like Vegeta
         this.target = null;
         this.lastDecisionTime = 0;
-        this.decisionInterval = 500; // ms
-        this.aggressiveness = 0.7; // 0-1, how likely to chase player
-        this.avoidanceRadius = 50;
-        this.chaseRadius = 100;
+        this.decisionInterval = 400; // Faster decisions
+        this.aggressiveness = 0.85; // High aggression - Saiyan Prince
+        this.avoidanceRadius = 40; // Less cautious
+        this.chaseRadius = 120; // Wider hunting range
         
         // Initialize position away from player
         this.initializePosition();
@@ -223,8 +229,12 @@ class AISnake {
     
     handlePlayerCollision() {
         // End game if player collides with AI
-        console.log('Player collided with AI snake!');
-        this.game.endGame();
+        console.log('Vegeta collided with Son Goku! Battle ended!');
+        this.game.isRunning = false;
+        this.game.gamePhase = 'ended';
+        if (gameUI && gameUI.showGameOver) {
+            gameUI.showGameOver();
+        }
     }
     
     eatFood() {
@@ -261,9 +271,19 @@ class AISnake {
             const alpha = 1 - (i * 0.03);
             
             ctx.globalAlpha = Math.max(0.4, alpha);
-            ctx.fillStyle = isHead ? this.headColor : this.color;
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = isHead ? 15 : 8;
+            
+            // Add Saiyan aura effect
+            if (isHead) {
+                // Head with royal blue and golden accents
+                ctx.fillStyle = this.headColor;
+                ctx.shadowColor = this.auraColor;
+                ctx.shadowBlur = 20;
+            } else {
+                // Body with royal blue color
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.glowColor;
+                ctx.shadowBlur = 12;
+            }
             
             // Add wave motion to body
             const waveY = segment.y + Math.sin(Date.now() * 0.003 + i * 0.5) * 2;

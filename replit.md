@@ -126,7 +126,11 @@ The application is designed for easy deployment to platforms like Replit, with d
 
 ## Recent Changes: Latest modifications with dates
 
-### July 19, 2025 - Enhanced Snake Game Features
+### July 19, 2025 - Dragon Ball Z Theme & Enhanced Features
+- **Dragon Ball Z Characters**: Son Goku (player) vs Vegeta (AI enemy)
+- **Glowing Neon Laser Saber**: Enhanced start animation with cyan/green glowing saber
+- **Vegeta AI Snake**: Royal blue Saiyan Prince with electric blue aura and aggressive behavior
+- **Fixed Collision System**: Proper game over when Vegeta collides with Son Goku
 - **Start Animation**: Added cinematic snake-biting-controller animation before home screen
 - **AI Enemy Snake**: Implemented intelligent AI opponent with chase/avoid behaviors  
 - **Wave Motion Mechanics**: Snake tail moves with wave function when growing

@@ -58,6 +58,9 @@ class SnakeGame {
         // Animation frame
         this.animationId = null;
         
+        // Player name
+        this.playerName = "Son Goku";
+        
         console.log('Snake Viper game initialized with smooth movement and AI enemy');
     }
 
