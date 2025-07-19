@@ -224,18 +224,9 @@ class AISnake {
     }
     
     checkCollisions() {
-        if (this.segments.length === 0 || !this.game.snake || this.game.snake.length === 0) return;
-        
-        const aiHead = this.segments[0];
-        const playerHead = this.game.snake[0];
-        
-        if (!aiHead || !playerHead) return;
-        
-        // Check collision with player
-        const distance = this.getDistance(aiHead, playerHead);
-        if (distance < this.segmentSize + this.game.snakeSize) {
-            this.handlePlayerCollision();
-        }
+        // Snake collision disabled - only power balls can end the game now
+        // Goku and Vegeta can pass through each other safely
+        return;
         
         // Check if AI eats food
         if (this.game.food) {

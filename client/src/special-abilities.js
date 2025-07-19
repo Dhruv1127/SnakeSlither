@@ -56,7 +56,7 @@ class SpecialAbilities {
             size: 12,
             trail: [],
             spawnTimer: 0,
-            spawnInterval: 3000, // 3 seconds between power balls
+            spawnInterval: 2000, // 2 seconds between power balls
             speed: 6
         };
         
@@ -349,7 +349,7 @@ class SpecialAbilities {
         
         // Update spawn timer
         if (!powerBall.active) {
-            powerBall.spawnTimer += deltaTime;
+            powerBall.spawnTimer += deltaTime * 16.67; // Convert to milliseconds
             if (powerBall.spawnTimer >= powerBall.spawnInterval) {
                 this.spawnGlobalPowerBall();
                 powerBall.spawnTimer = 0;
@@ -358,8 +358,8 @@ class SpecialAbilities {
         
         // Update active power ball
         if (powerBall.active) {
-            powerBall.x += powerBall.vx * deltaTime;
-            powerBall.y += powerBall.vy * deltaTime;
+            powerBall.x += powerBall.vx * deltaTime * 0.5;
+            powerBall.y += powerBall.vy * deltaTime * 0.5;
             
             // Add trail
             powerBall.trail.push({ x: powerBall.x, y: powerBall.y, alpha: 1 });
@@ -502,7 +502,7 @@ class SpecialAbilities {
     // Vegeta Regeneration System
     updateVegetaRegeneration(deltaTime) {
         if (this.vegetaRegeneration.active) {
-            this.vegetaRegeneration.timer += deltaTime;
+            this.vegetaRegeneration.timer += deltaTime * 16.67; // Convert to milliseconds
             
             if (this.vegetaRegeneration.timer >= this.vegetaRegeneration.duration) {
                 this.completeVegetaRegeneration();
