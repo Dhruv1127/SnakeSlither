@@ -10,6 +10,7 @@ class AISnake {
         this.segmentSpacing = 15;
         this.turnSpeed = 0.12;
         this.name = "Vegeta";
+        this.regenerating = false; // Add regeneration state
         
         // Saiyan Prince colors - Royal blue with electric aura
         this.color = '#1a237e'; // Deep royal blue
@@ -70,7 +71,7 @@ class AISnake {
     }
     
     update(deltaTime) {
-        if (!this.game.isRunning || this.segments.length === 0) return;
+        if (!this.game.isRunning || this.segments.length === 0 || this.regenerating) return;
         
         this.makeDecision();
         this.smoothTurn(deltaTime);
@@ -318,7 +319,7 @@ class AISnake {
     }
     
     render(ctx) {
-        if (this.segments.length === 0) return;
+        if (this.segments.length === 0 || this.regenerating) return;
         
         ctx.save();
         

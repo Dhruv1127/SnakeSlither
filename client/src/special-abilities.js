@@ -48,15 +48,24 @@ class SpecialAbilities {
             }
         };
         
-        // Initialize Ultra Instinct system
-        this.ultraInstinctTimer = Date.now();
-        this.ultraInstinctInterval = 5000; // 5 seconds
-        this.ultraInstinctActive = false;
-        this.ultraInstinctDuration = 2000; // 2 seconds duration
+        // New Power Ball System - Single power ball from random directions
+        this.globalPowerBall = {
+            active: false,
+            x: 0, y: 0,
+            vx: 0, vy: 0,
+            size: 12,
+            trail: [],
+            spawnTimer: 0,
+            spawnInterval: 3000, // 3 seconds between power balls
+            speed: 6
+        };
         
-        // Initialize automatic power ball exchange system
-        this.autoPowerBallTimer = Date.now();
-        this.autoPowerBallInterval = 5000; // 5 seconds
+        // Vegeta regeneration system
+        this.vegetaRegeneration = {
+            active: false,
+            timer: 0,
+            duration: 2000 // 2 seconds
+        };
     }
     
     // Goku Special Abilities
@@ -301,25 +310,11 @@ class SpecialAbilities {
             ctx.restore();
         }
         
-        // Render speed boost effect
-        if (this.gokuAbilities.speedBoost.active && this.game.snake.length > 0) {
-            const head = this.game.snake[0];
-            ctx.save();
-            
-            const pulse = Math.sin(Date.now() * 0.02) * 0.5 + 0.5;
-            ctx.globalAlpha = pulse * 0.3;
-            ctx.fillStyle = '#ffdf00';
-            ctx.shadowColor = '#ffdf00';
-            ctx.shadowBlur = 25;
-            ctx.beginPath();
-            ctx.arc(head.x, head.y, this.game.snakeSize * 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.restore();
-        }
+        // Render global power ball
+        this.renderGlobalPowerBall(ctx);
         
-        // Render Ultra Instinct effect
-        this.renderUltraInstinctEffect(ctx);
+        // Render Vegeta regeneration effect
+        this.renderVegetaRegeneration(ctx);
     }
     
     // Color modification methods
@@ -355,155 +350,271 @@ class SpecialAbilities {
         return multiplier;
     }
     
-    // Ultra Instinct System - Automatic every 5 seconds
-    updateUltraInstinct() {
-        const currentTime = Date.now();
+    // New Global Power Ball System
+    updateGlobalPowerBall(deltaTime) {
+        const powerBall = this.globalPowerBall;
         
-        // Check if it's time for Ultra Instinct activation
-        if (currentTime - this.ultraInstinctTimer >= this.ultraInstinctInterval) {
-            this.activateUltraInstinct();
-            this.ultraInstinctTimer = currentTime;
+        // Update spawn timer
+        if (!powerBall.active) {
+            powerBall.spawnTimer += deltaTime;
+            if (powerBall.spawnTimer >= powerBall.spawnInterval) {
+                this.spawnGlobalPowerBall();
+                powerBall.spawnTimer = 0;
+            }
         }
         
-        // Deactivate Ultra Instinct after duration
-        if (this.ultraInstinctActive && currentTime - this.ultraInstinctTimer >= this.ultraInstinctDuration) {
-            this.ultraInstinctActive = false;
-            console.log('Goku Ultra Instinct deactivated');
-        }
-    }
-    
-    activateUltraInstinct() {
-        this.ultraInstinctActive = true;
-        console.log('Goku activates Ultra Instinct! Incredible speed boost!');
-        
-        // Play special sound effect
-        if (window.gameAudio) {
-            window.gameAudio.playSound('speedboost');
-        }
-        
-        // Notify AI that Goku is using special abilities
-        if (this.game.aiSnake && this.game.aiSnake.onGokuDodge) {
-            this.game.aiSnake.onGokuDodge();
-        }
-    }
-    
-    // Automatic Power Ball Exchange System - Every 5 seconds
-    updateAutoPowerBalls() {
-        const currentTime = Date.now();
-        
-        // Check if it's time for automatic power ball exchange
-        if (currentTime - this.autoPowerBallTimer >= this.autoPowerBallInterval) {
-            this.triggerPowerBallExchange();
-            this.autoPowerBallTimer = currentTime;
-        }
-    }
-    
-    triggerPowerBallExchange() {
-        const goku = this.gokuAbilities.powerBall;
-        const vegeta = this.vegetaAbilities.powerBall;
-        
-        // Don't trigger if either is already active
-        if (goku.active || vegeta.active || goku.cooldown > 0 || vegeta.cooldown > 0) {
-            return;
-        }
-        
-        // Randomly choose who attacks first (60% Goku, 40% Vegeta for balance)
-        const gokuAttacksFirst = Math.random() < 0.6;
-        
-        if (gokuAttacksFirst) {
-            console.log('Auto Power Ball Exchange: Goku attacks first!');
-            this.autoLaunchGokuPowerBall();
+        // Update active power ball
+        if (powerBall.active) {
+            powerBall.x += powerBall.vx * deltaTime;
+            powerBall.y += powerBall.vy * deltaTime;
             
-            // Vegeta responds after short delay
-            setTimeout(() => {
-                if (this.game.aiSnake && this.game.aiSnake.launchPowerBall && this.game.snake && this.game.snake.length > 0) {
-                    console.log('Vegeta responds with power ball attack!');
-                    this.game.aiSnake.launchPowerBall(this.game.snake[0]);
-                }
-            }, 800); // 0.8 second delay
-        } else {
-            console.log('Auto Power Ball Exchange: Vegeta attacks first!');
-            if (this.game.aiSnake && this.game.aiSnake.launchPowerBall && this.game.snake && this.game.snake.length > 0) {
-                this.game.aiSnake.launchPowerBall(this.game.snake[0]);
+            // Add trail
+            powerBall.trail.push({ x: powerBall.x, y: powerBall.y, alpha: 1 });
+            if (powerBall.trail.length > 10) {
+                powerBall.trail.shift();
             }
             
-            // Goku responds after short delay
-            setTimeout(() => {
-                console.log('Goku responds with power ball attack!');
-                this.autoLaunchGokuPowerBall();
-            }, 600); // 0.6 second delay
+            // Check if power ball is out of bounds
+            if (powerBall.x < -50 || powerBall.x > this.game.canvasSize + 50 || 
+                powerBall.y < -50 || powerBall.y > this.game.canvasSize + 50) {
+                powerBall.active = false;
+                powerBall.trail = [];
+            }
+            
+            // Check collisions
+            this.checkGlobalPowerBallCollisions();
         }
     }
     
-    autoLaunchGokuPowerBall() {
-        const powerBall = this.gokuAbilities.powerBall;
+    spawnGlobalPowerBall() {
+        const powerBall = this.globalPowerBall;
+        const canvasSize = this.game.canvasSize;
         
-        if (powerBall.cooldown > 0 || !this.game.snake || this.game.snake.length === 0) {
-            return;
+        // Random spawn position from edges
+        const side = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+        let startX, startY, targetX, targetY;
+        
+        switch(side) {
+            case 0: // Top
+                startX = Math.random() * canvasSize;
+                startY = -20;
+                break;
+            case 1: // Right
+                startX = canvasSize + 20;
+                startY = Math.random() * canvasSize;
+                break;
+            case 2: // Bottom
+                startX = Math.random() * canvasSize;
+                startY = canvasSize + 20;
+                break;
+            case 3: // Left
+                startX = -20;
+                startY = Math.random() * canvasSize;
+                break;
         }
         
-        // Get Goku's head position
-        const head = this.game.snake[0];
+        // Target random position in center area
+        targetX = canvasSize * 0.3 + Math.random() * canvasSize * 0.4;
+        targetY = canvasSize * 0.3 + Math.random() * canvasSize * 0.4;
         
-        // Target Vegeta if available
-        let targetX = this.game.canvasSize / 2;
-        let targetY = this.game.canvasSize / 2;
-        
-        if (this.game.aiSnake && this.game.aiSnake.segments && this.game.aiSnake.segments.length > 0) {
-            const vegetaHead = this.game.aiSnake.segments[0];
-            targetX = vegetaHead.x;
-            targetY = vegetaHead.y;
-        }
-        
-        // Calculate direction to target
-        const dx = targetX - head.x;
-        const dy = targetY - head.y;
+        // Calculate direction
+        const dx = targetX - startX;
+        const dy = targetY - startY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 0) {
-            powerBall.x = head.x;
-            powerBall.y = head.y;
-            powerBall.vx = (dx / distance) * 12; // Fast speed
-            powerBall.vy = (dy / distance) * 12;
-            powerBall.active = true;
-            powerBall.energy = 100;
-            powerBall.cooldown = powerBall.maxCooldown;
-            powerBall.trail = [];
+        powerBall.x = startX;
+        powerBall.y = startY;
+        powerBall.vx = (dx / distance) * powerBall.speed;
+        powerBall.vy = (dy / distance) * powerBall.speed;
+        powerBall.active = true;
+        powerBall.trail = [];
+        
+        console.log('Global Power Ball spawned from side', side);
+        
+        // Play warning sound
+        if (window.gameAudio) {
+            window.gameAudio.playSound('whoosh');
+        }
+    }
+    
+    checkGlobalPowerBallCollisions() {
+        const powerBall = this.globalPowerBall;
+        
+        // Check collision with Goku
+        if (this.game.snake && this.game.snake.length > 0) {
+            const gokuHead = this.game.snake[0];
+            const gokuDistance = Math.sqrt(
+                (powerBall.x - gokuHead.x) ** 2 + 
+                (powerBall.y - gokuHead.y) ** 2
+            );
             
-            // Play power ball sound
-            if (window.gameAudio) {
-                window.gameAudio.playSound('powerball');
+            if (gokuDistance < powerBall.size + this.game.snakeSize) {
+                // Goku hit - Game Over
+                console.log('Power Ball hit Goku! Game Over!');
+                this.game.isRunning = false;
+                powerBall.active = false;
+                
+                // Create explosion effect
+                if (this.game.particles) {
+                    this.game.particles.createExplosionEffect(gokuHead.x, gokuHead.y, '#ff0000');
+                }
+                
+                // Play explosion sound
+                if (window.gameAudio) {
+                    window.gameAudio.playSound('explosion');
+                }
+                
+                // Show game over
+                setTimeout(() => {
+                    if (window.gameUI && window.gameUI.showGameOver) {
+                        window.gameUI.showGameOver({
+                            score: this.game.score || 0,
+                            gameTime: (Date.now() - this.game.gameStartTime) / 1000 || 0,
+                            reason: 'Hit by Power Ball!'
+                        });
+                    }
+                }, 100);
+                return;
+            }
+        }
+        
+        // Check collision with Vegeta
+        if (this.game.aiSnake && this.game.aiSnake.segments && this.game.aiSnake.segments.length > 0) {
+            const vegetaHead = this.game.aiSnake.segments[0];
+            const vegetaDistance = Math.sqrt(
+                (powerBall.x - vegetaHead.x) ** 2 + 
+                (powerBall.y - vegetaHead.y) ** 2
+            );
+            
+            if (vegetaDistance < powerBall.size + this.game.aiSnake.segmentSize) {
+                // Vegeta hit - Start regeneration
+                console.log('Power Ball hit Vegeta! Starting regeneration...');
+                powerBall.active = false;
+                this.startVegetaRegeneration();
+                
+                // Create explosion effect
+                if (this.game.particles) {
+                    this.game.particles.createExplosionEffect(vegetaHead.x, vegetaHead.y, '#00ff00');
+                }
+                
+                // Play hit sound
+                if (window.gameAudio) {
+                    window.gameAudio.playSound('hit');
+                }
+                return;
             }
         }
     }
     
-    // Enhanced render method for Ultra Instinct effects
-    renderUltraInstinctEffect(ctx) {
-        if (this.ultraInstinctActive && this.game.snake.length > 0) {
-            const head = this.game.snake[0];
-            ctx.save();
+    // Vegeta Regeneration System
+    updateVegetaRegeneration(deltaTime) {
+        if (this.vegetaRegeneration.active) {
+            this.vegetaRegeneration.timer += deltaTime;
             
-            // Ultra Instinct silver/white aura with rapid pulsing
-            const pulse = Math.sin(Date.now() * 0.05) * 0.3 + 0.7;
-            ctx.globalAlpha = pulse * 0.4;
-            ctx.fillStyle = '#e0e0e0'; // Silver/white
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 35;
-            ctx.beginPath();
-            ctx.arc(head.x, head.y, this.game.snakeSize * 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Inner bright core
-            ctx.globalAlpha = pulse * 0.6;
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 20;
-            ctx.beginPath();
-            ctx.arc(head.x, head.y, this.game.snakeSize * 1.5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.restore();
+            if (this.vegetaRegeneration.timer >= this.vegetaRegeneration.duration) {
+                this.completeVegetaRegeneration();
+            }
         }
+    }
+    
+    startVegetaRegeneration() {
+        this.vegetaRegeneration.active = true;
+        this.vegetaRegeneration.timer = 0;
+        
+        // Hide Vegeta during regeneration
+        if (this.game.aiSnake) {
+            this.game.aiSnake.regenerating = true;
+        }
+        
+        console.log('Vegeta regeneration started - 2 seconds');
+    }
+    
+    completeVegetaRegeneration() {
+        this.vegetaRegeneration.active = false;
+        this.vegetaRegeneration.timer = 0;
+        
+        // Restore Vegeta
+        if (this.game.aiSnake) {
+            this.game.aiSnake.regenerating = false;
+            this.game.aiSnake.initializePosition(); // Reset position
+        }
+        
+        console.log('Vegeta regeneration complete!');
+        
+        // Play power up sound
+        if (window.gameAudio) {
+            window.gameAudio.playSound('powerup');
+        }
+    }
+    
+    // Render the global power ball
+    renderGlobalPowerBall(ctx) {
+        const powerBall = this.globalPowerBall;
+        if (!powerBall.active) return;
+        
+        ctx.save();
+        
+        // Render trail
+        for (let i = 0; i < powerBall.trail.length; i++) {
+            const trail = powerBall.trail[i];
+            const alpha = (i / powerBall.trail.length) * 0.8;
+            
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#ff6600'; // Orange/red energy
+            ctx.beginPath();
+            ctx.arc(trail.x, trail.y, powerBall.size * (i / powerBall.trail.length), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Render main power ball
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#ff3300'; // Bright red
+        ctx.shadowColor = '#ff3300';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(powerBall.x, powerBall.y, powerBall.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner core
+        ctx.fillStyle = '#ffff00'; // Yellow core
+        ctx.shadowColor = '#ffff00';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(powerBall.x, powerBall.y, powerBall.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+    
+    // Render Vegeta regeneration effect
+    renderVegetaRegeneration(ctx) {
+        if (!this.vegetaRegeneration.active) return;
+        if (!this.game.aiSnake || !this.game.aiSnake.segments || this.game.aiSnake.segments.length === 0) return;
+        
+        const vegetaHead = this.game.aiSnake.segments[0];
+        const progress = this.vegetaRegeneration.timer / this.vegetaRegeneration.duration;
+        
+        ctx.save();
+        
+        // Regeneration aura
+        const pulse = Math.sin(Date.now() * 0.02) * 0.3 + 0.7;
+        ctx.globalAlpha = pulse * 0.6;
+        ctx.fillStyle = '#00ff88'; // Green regeneration glow
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 30;
+        ctx.beginPath();
+        ctx.arc(vegetaHead.x, vegetaHead.y, 40 * (1 - progress), 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Progress ring
+        ctx.globalAlpha = 0.8;
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(vegetaHead.x, vegetaHead.y, 30, -Math.PI/2, -Math.PI/2 + (progress * Math.PI * 2));
+        ctx.stroke();
+        
+        ctx.restore();
     }
 }
 
