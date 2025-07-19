@@ -285,7 +285,7 @@ class SnakeGame {
 
     generateObstacles() {
         this.obstacles = [];
-        const obstacleCount = 8; // Fixed number of obstacles
+        const obstacleCount = 5; // Reduced number of obstacles
         
         for (let i = 0; i < obstacleCount; i++) {
             let obstacle;
@@ -293,17 +293,26 @@ class SnakeGame {
             
             do {
                 obstacle = {
-                    x: 30 + Math.random() * (this.canvasSize - 60),
-                    y: 30 + Math.random() * (this.canvasSize - 60),
-                    size: 15 + Math.random() * 10
+                    x: 80 + Math.random() * (this.canvasSize - 160), // More space from edges
+                    y: 80 + Math.random() * (this.canvasSize - 160),
+                    size: 15 + Math.random() * 8
                 };
                 attempts++;
             } while (this.isPositionOccupied(obstacle.x, obstacle.y, obstacle.size) && attempts < 100);
             
             if (attempts < 100) {
-                this.obstacles.push(obstacle);
+                // Ensure obstacle is not too close to starting position
+                const centerX = this.canvasSize / 2;
+                const centerY = this.canvasSize / 2;
+                const distanceFromCenter = Math.sqrt((obstacle.x - centerX) ** 2 + (obstacle.y - centerY) ** 2);
+                
+                if (distanceFromCenter > 100) { // Only add if far from center
+                    this.obstacles.push(obstacle);
+                }
             }
         }
+        
+        console.log('Generated obstacles:', this.obstacles.length);
     }
 
     isPositionOccupied(x, y, size) {
@@ -346,21 +355,37 @@ class SnakeGame {
     }
 
     update(deltaTime) {
+        // Ensure valid deltaTime to prevent instant movement
+        if (!isFinite(deltaTime) || deltaTime <= 0 || deltaTime > 2) {
+            deltaTime = 1;
+        }
+        
         // Smooth direction interpolation
         this.smoothTurn(deltaTime);
         
         // Move snake head
         const head = this.snake[0];
-        const moveDistance = this.gameSpeed * deltaTime;
+        const moveDistance = this.gameSpeed * deltaTime * 0.5; // Slower movement
         
         const newHead = {
             x: head.x + Math.cos(this.direction) * moveDistance,
             y: head.y + Math.sin(this.direction) * moveDistance
         };
         
-        // Check wall collision
+        // Check wall collision - add some debug logging
         if (newHead.x < this.snakeSize || newHead.x > this.canvasSize - this.snakeSize || 
             newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
+            console.log('Wall collision:', {
+                newHead: newHead,
+                canvasSize: this.canvasSize,
+                snakeSize: this.snakeSize,
+                boundaries: {
+                    minX: this.snakeSize,
+                    maxX: this.canvasSize - this.snakeSize,
+                    minY: this.snakeSize,
+                    maxY: this.canvasSize - this.snakeSize
+                }
+            });
             this.particles.createWallHitEffect(newHead.x, newHead.y);
             this.gameOver();
             return;
@@ -376,10 +401,16 @@ class SnakeGame {
             }
         }
         
-        // Check obstacle collision
+        // Check obstacle collision - add debug logging
         for (let obstacle of this.obstacles) {
             const distance = Math.sqrt((newHead.x - obstacle.x) ** 2 + (newHead.y - obstacle.y) ** 2);
             if (distance < this.snakeSize + obstacle.size) {
+                console.log('Obstacle collision:', {
+                    newHead: newHead,
+                    obstacle: obstacle,
+                    distance: distance,
+                    collisionThreshold: this.snakeSize + obstacle.size
+                });
                 this.gameOver();
                 return;
             }
