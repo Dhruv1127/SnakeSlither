@@ -444,7 +444,6 @@ class SpecialAbilities {
             if (gokuDistance < powerBall.size + this.game.snakeSize) {
                 // Goku hit - Game Over
                 console.log('Power Ball hit Goku! Game Over!');
-                this.game.isRunning = false;
                 powerBall.active = false;
                 
                 // Create explosion effect
@@ -457,16 +456,22 @@ class SpecialAbilities {
                     window.gameAudio.playSound('explosion');
                 }
                 
-                // Show game over
-                setTimeout(() => {
-                    if (window.gameUI && window.gameUI.showGameOver) {
-                        window.gameUI.showGameOver({
-                            score: this.game.score || 0,
-                            gameTime: (Date.now() - this.game.gameStartTime) / 1000 || 0,
-                            reason: 'Hit by Power Ball!'
-                        });
-                    }
-                }, 100);
+                // Trigger proper game over
+                if (this.game.gameOver) {
+                    this.game.gameOver(false);
+                } else {
+                    // Fallback if gameOver method doesn't exist
+                    this.game.isRunning = false;
+                    setTimeout(() => {
+                        if (window.gameUI && window.gameUI.showGameOver) {
+                            window.gameUI.showGameOver({
+                                score: this.game.score || 0,
+                                gameTime: (Date.now() - this.game.gameStartTime) / 1000 || 0,
+                                reason: 'Hit by Power Ball!'
+                            });
+                        }
+                    }, 100);
+                }
                 return;
             }
         }
