@@ -65,6 +65,13 @@ class EnhancedFeatures {
     }
 }
 
+// Wait for SnakeGame to be defined before extending
+function extendSnakeGame() {
+    if (typeof SnakeGame === 'undefined') {
+        setTimeout(extendSnakeGame, 50);
+        return;
+    }
+
 // Extend SnakeGame with enhanced methods
 SnakeGame.prototype.renderSnakeSegmentWithWave = function(x, y, alpha, index) {
     if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
@@ -146,5 +153,10 @@ window.activateEnhancements = function() {
         console.log('Enhanced features activated!');
     }
 };
+
+}
+
+// Start extending SnakeGame when script loads
+extendSnakeGame();
 
 console.log('Enhanced features loaded');

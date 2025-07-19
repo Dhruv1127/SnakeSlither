@@ -37,9 +37,17 @@
             
             // Wait for start animation to complete
             await new Promise(resolve => {
-                startAnimation.start(() => {
-                    resolve();
-                });
+                // Ensure startAnimation is available
+                const waitForAnimation = () => {
+                    if (window.startAnimation) {
+                        startAnimation.start(() => {
+                            resolve();
+                        });
+                    } else {
+                        setTimeout(waitForAnimation, 100);
+                    }
+                };
+                waitForAnimation();
             });
             
             // Show loading screen
@@ -65,7 +73,7 @@
             gameStorage.applyTheme(settings.theme);
             gameAudio.setEnabled(settings.soundEnabled);
             
-            console.log('Snake Viper initialized successfully with AI enemy');
+            console.log('Snake Viper initialized successfully with all enhanced features!');
             
             // Hide loading screen and show start screen
             hideLoadingScreen();

@@ -361,5 +361,11 @@ class StartAnimation {
     }
 }
 
-// Global instance
-window.startAnimation = new StartAnimation();
+// Create global instance when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        window.startAnimation = new StartAnimation();
+    });
+} else {
+    window.startAnimation = new StartAnimation();
+}
