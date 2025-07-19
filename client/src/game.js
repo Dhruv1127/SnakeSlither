@@ -456,25 +456,35 @@ class SnakeGame {
             y: head.y + Math.sin(this.direction) * moveDistance
         };
         
-        // Wall collision disabled - only power balls can end the game
-        // Wrap around boundaries instead of game over
-        if (newHead.x < this.snakeSize) {
-            newHead.x = this.canvasSize - this.snakeSize;
-        } else if (newHead.x > this.canvasSize - this.snakeSize) {
-            newHead.x = this.snakeSize;
+        // Check wall collision
+        if (newHead.x < this.snakeSize || newHead.x > this.canvasSize - this.snakeSize || 
+            newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
+            console.log('Wall collision detected');
+            this.particles.createWallHitEffect(newHead.x, newHead.y);
+            this.gameOver();
+            return;
         }
         
-        if (newHead.y < this.snakeSize) {
-            newHead.y = this.canvasSize - this.snakeSize;
-        } else if (newHead.y > this.canvasSize - this.snakeSize) {
-            newHead.y = this.snakeSize;
+        // Check self collision (skip first few segments)
+        for (let i = 4; i < this.snake.length; i++) {
+            const segment = this.snake[i];
+            const distance = Math.sqrt((newHead.x - segment.x) ** 2 + (newHead.y - segment.y) ** 2);
+            if (distance < this.snakeSize * 1.2) {
+                console.log('Self collision detected');
+                this.gameOver();
+                return;
+            }
         }
         
-        // Self collision disabled - only power balls can end the game
-        // Goku can pass through his own tail safely
-        
-        // Obstacle collision disabled - only power balls can end the game
-        // Goku can pass through obstacles safely
+        // Check obstacle collision
+        for (let obstacle of this.obstacles) {
+            const distance = Math.sqrt((newHead.x - obstacle.x) ** 2 + (newHead.y - obstacle.y) ** 2);
+            if (distance < this.snakeSize + obstacle.size) {
+                console.log('Obstacle collision detected');
+                this.gameOver();
+                return;
+            }
+        }
         
         // Update snake body following head
         this.updateSnakeBody(newHead);
