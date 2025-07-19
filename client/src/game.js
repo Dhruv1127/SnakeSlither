@@ -416,6 +416,11 @@ class SnakeGame {
     }
 
     smoothTurn(deltaTime) {
+        // Ensure valid directions
+        if (!isFinite(this.targetDirection)) this.targetDirection = 0;
+        if (!isFinite(this.direction)) this.direction = 0;
+        if (!isFinite(deltaTime) || deltaTime <= 0) deltaTime = 1;
+        
         // Smooth direction interpolation
         let angleDiff = this.targetDirection - this.direction;
         
@@ -425,11 +430,17 @@ class SnakeGame {
         
         // Apply smooth turning
         if (Math.abs(angleDiff) > 0.01) {
-            this.direction += angleDiff * this.turnSpeed * deltaTime;
+            this.direction += angleDiff * this.turnSpeed * Math.min(deltaTime, 2);
         }
     }
 
     updateSnakeBody(newHead) {
+        // Validate new head position
+        if (!isFinite(newHead.x) || !isFinite(newHead.y)) {
+            console.error('Invalid head position:', newHead);
+            return;
+        }
+        
         // Add new head
         this.snake.unshift(newHead);
         
@@ -438,13 +449,19 @@ class SnakeGame {
             const current = this.snake[i];
             const target = this.snake[i - 1];
             
+            // Ensure valid positions
+            if (!isFinite(current.x) || !isFinite(current.y) || 
+                !isFinite(target.x) || !isFinite(target.y)) {
+                continue;
+            }
+            
             // Calculate distance to previous segment
             const dx = target.x - current.x;
             const dy = target.y - current.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             // If too far, move closer
-            if (distance > this.segmentSpacing) {
+            if (distance > this.segmentSpacing && distance > 0) {
                 const ratio = (distance - this.segmentSpacing) / distance;
                 current.x += dx * ratio;
                 current.y += dy * ratio;
@@ -561,11 +578,11 @@ class SnakeGame {
     }
 
     renderSnakeHead(x, y) {
-        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, this.snakeSize);
-        gradient.addColorStop(0, this.getSnakeHeadColor());
-        gradient.addColorStop(1, this.getSnakeColor());
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y)) return;
         
-        this.ctx.fillStyle = gradient;
+        this.ctx.save();
+        this.ctx.fillStyle = this.getSnakeHeadColor();
         this.ctx.shadowColor = this.getSnakeColor();
         this.ctx.shadowBlur = 15;
         
@@ -579,25 +596,30 @@ class SnakeGame {
         const eyeOffset = this.snakeSize * 0.4;
         const eyeSize = 2;
         
-        const eyeX1 = x + Math.cos(this.direction - 0.5) * eyeOffset;
-        const eyeY1 = y + Math.sin(this.direction - 0.5) * eyeOffset;
-        const eyeX2 = x + Math.cos(this.direction + 0.5) * eyeOffset;
-        const eyeY2 = y + Math.sin(this.direction + 0.5) * eyeOffset;
+        // Ensure direction is valid
+        const dir = isFinite(this.direction) ? this.direction : 0;
+        
+        const eyeX1 = x + Math.cos(dir - 0.5) * eyeOffset;
+        const eyeY1 = y + Math.sin(dir - 0.5) * eyeOffset;
+        const eyeX2 = x + Math.cos(dir + 0.5) * eyeOffset;
+        const eyeY2 = y + Math.sin(dir + 0.5) * eyeOffset;
         
         this.ctx.beginPath();
         this.ctx.arc(eyeX1, eyeY1, eyeSize, 0, Math.PI * 2);
         this.ctx.arc(eyeX2, eyeY2, eyeSize, 0, Math.PI * 2);
         this.ctx.fill();
+        
+        this.ctx.restore();
     }
 
     renderSnakeSegment(x, y, alpha, index) {
-        const size = this.snakeSize * (0.8 + alpha * 0.2);
-        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, size);
-        gradient.addColorStop(0, this.getSnakeColor() + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
-        gradient.addColorStop(1, this.getSnakeColor() + '40');
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
         
-        this.ctx.fillStyle = gradient;
-        this.ctx.globalAlpha = alpha;
+        const size = this.snakeSize * (0.8 + alpha * 0.2);
+        
+        this.ctx.fillStyle = this.getSnakeColor();
+        this.ctx.globalAlpha = Math.max(0.3, alpha);
         
         this.ctx.beginPath();
         this.ctx.arc(x, y, size, 0, Math.PI * 2);
@@ -607,7 +629,7 @@ class SnakeGame {
     }
 
     renderFood() {
-        if (!this.food) return;
+        if (!this.food || !isFinite(this.food.x) || !isFinite(this.food.y)) return;
         
         this.ctx.save();
         
@@ -618,16 +640,8 @@ class SnakeGame {
         // Glow effect
         this.ctx.shadowColor = this.getFoodColor();
         this.ctx.shadowBlur = 20;
+        this.ctx.fillStyle = this.getFoodColor();
         
-        const gradient = this.ctx.createRadialGradient(
-            this.food.x, this.food.y, 0,
-            this.food.x, this.food.y, size
-        );
-        gradient.addColorStop(0, '#ffffff');
-        gradient.addColorStop(0.7, this.getFoodColor());
-        gradient.addColorStop(1, this.getFoodColor() + '40');
-        
-        this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(this.food.x, this.food.y, size, 0, Math.PI * 2);
         this.ctx.fill();
