@@ -430,10 +430,17 @@ class GameUI {
     }
 
     showGameOver(gameData) {
+        // Force stop any running game first
+        if (window.game) {
+            window.game.isRunning = false;
+        }
+        
         // Ensure gameData exists and has required properties
         const data = gameData || {};
         const score = data.score || 0;
         const reason = data.reason || '';
+        
+        console.log('ShowGameOver called with reason:', reason);
         
         const isNewHighScore = gameStorage.setHighScore(score);
         
@@ -455,8 +462,17 @@ class GameUI {
             this.elements.gameOverTitle.textContent = 'Game Over!';
         }
         
+        // Force hide all other screens first
+        this.hideAllScreens();
+        
+        // Update high score and show game over screen
         this.updateHighScore(gameStorage.getHighScore());
-        this.showScreen('gameOver');
+        
+        // Force display the game over screen
+        this.elements.gameOverScreen.style.display = 'flex';
+        this.elements.gameOverScreen.style.zIndex = '1000';
+        
+        console.log('Game over screen should be visible now');
         
         // Update stats with safe data
         if (data.score !== undefined) {

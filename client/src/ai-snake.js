@@ -232,7 +232,9 @@ class AISnake {
             if (vegetaHead && gokuHead) {
                 const distance = this.getDistance(vegetaHead, gokuHead);
                 if (distance < this.segmentSize + this.game.snakeSize) {
-                    console.log('Vegeta collided with Son Goku! Battle ended!');
+                    console.log('Vegeta collided with Son Goku! Battle ended! - STOPPING GAME IMMEDIATELY');
+                    this.game.isRunning = false;
+                    cancelAnimationFrame(this.game.animationId);
                     this.handlePlayerCollision();
                     return;
                 }
@@ -243,7 +245,9 @@ class AISnake {
                     if (gokuSegment) {
                         const segmentDistance = this.getDistance(vegetaHead, gokuSegment);
                         if (segmentDistance < this.segmentSize + this.game.snakeSize) {
-                            console.log('Vegeta collided with Son Goku\'s body! Battle ended!');
+                            console.log('Vegeta collided with Son Goku\'s body! Battle ended! - STOPPING GAME IMMEDIATELY');
+                            this.game.isRunning = false;
+                            cancelAnimationFrame(this.game.animationId);
                             this.handlePlayerCollision();
                             return;
                         }

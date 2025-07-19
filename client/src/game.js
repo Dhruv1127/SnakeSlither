@@ -459,7 +459,9 @@ class SnakeGame {
         // Check wall collision
         if (newHead.x < this.snakeSize || newHead.x > this.canvasSize - this.snakeSize || 
             newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
-            console.log('Wall collision detected');
+            console.log('Wall collision detected - STOPPING GAME IMMEDIATELY');
+            this.isRunning = false;
+            cancelAnimationFrame(this.animationId);
             this.particles.createWallHitEffect(newHead.x, newHead.y);
             this.gameOver(false, 'Hit wall');
             return;
@@ -470,7 +472,9 @@ class SnakeGame {
             const segment = this.snake[i];
             const distance = Math.sqrt((newHead.x - segment.x) ** 2 + (newHead.y - segment.y) ** 2);
             if (distance < this.snakeSize * 1.2) {
-                console.log('Self collision detected');
+                console.log('Self collision detected - STOPPING GAME IMMEDIATELY');
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
                 this.gameOver(false, 'Hit self');
                 return;
             }
@@ -484,7 +488,9 @@ class SnakeGame {
             if (vegetaHead) {
                 const distance = Math.sqrt((newHead.x - vegetaHead.x) ** 2 + (newHead.y - vegetaHead.y) ** 2);
                 if (distance < this.snakeSize + this.aiSnake.segmentSize) {
-                    console.log('Son Goku collided with Vegeta! Battle ended!');
+                    console.log('Son Goku collided with Vegeta! Battle ended! - STOPPING GAME IMMEDIATELY');
+                    this.isRunning = false;
+                    cancelAnimationFrame(this.animationId);
                     this.gameOver(false, 'Collided with Vegeta!');
                     return;
                 }
@@ -496,7 +502,9 @@ class SnakeGame {
                 if (vegetaSegment) {
                     const segmentDistance = Math.sqrt((newHead.x - vegetaSegment.x) ** 2 + (newHead.y - vegetaSegment.y) ** 2);
                     if (segmentDistance < this.snakeSize + this.aiSnake.segmentSize) {
-                        console.log('Son Goku collided with Vegeta\'s body! Battle ended!');
+                        console.log('Son Goku collided with Vegeta\'s body! Battle ended! - STOPPING GAME IMMEDIATELY');
+                        this.isRunning = false;
+                        cancelAnimationFrame(this.animationId);
                         this.gameOver(false, 'Collided with Vegeta\'s body!');
                         return;
                     }
@@ -847,11 +855,12 @@ class SnakeGame {
         
         console.log('Game over:', gameData);
         // Immediately show game over screen to prevent lag/sticking
-        setTimeout(() => { 
-            if (window.gameUI && window.gameUI.showGameOver) { 
-                window.gameUI.showGameOver(gameData); 
-            } 
-        }, 100);
+        console.log('About to show game over screen with data:', gameData);
+        if (window.gameUI && window.gameUI.showGameOver) { 
+            window.gameUI.showGameOver(gameData); 
+        } else {
+            console.error('gameUI.showGameOver not available!');
+        }
     }
 
     pause() {
@@ -1109,11 +1118,12 @@ class SnakeGame {
         
         console.log('Game over:', gameData);
         // Immediately show game over screen to prevent lag/sticking
-        setTimeout(() => { 
-            if (window.gameUI && window.gameUI.showGameOver) { 
-                window.gameUI.showGameOver(gameData); 
-            } 
-        }, 100);
+        console.log('About to show game over screen with data:', gameData);
+        if (window.gameUI && window.gameUI.showGameOver) { 
+            window.gameUI.showGameOver(gameData); 
+        } else {
+            console.error('gameUI.showGameOver not available!');
+        }
     }
 
     eatFood() {
