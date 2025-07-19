@@ -57,7 +57,10 @@ class SpecialAbilities {
             trail: [],
             spawnTimer: 0,
             spawnInterval: 2000, // 2 seconds between power balls
-            speed: 6
+            speed: 6,
+            lastGokuHit: 0,
+            lastVegetaHit: 0,
+            hitCooldown: 1000 // 1 second cooldown between hits
         };
         
         // Vegeta regeneration system
@@ -432,6 +435,7 @@ class SpecialAbilities {
     
     checkGlobalPowerBallCollisions() {
         const powerBall = this.globalPowerBall;
+        const now = Date.now();
         
         // Check collision with Goku
         if (this.game.snake && this.game.snake.length > 0) {
@@ -441,10 +445,12 @@ class SpecialAbilities {
                 (powerBall.y - gokuHead.y) ** 2
             );
             
-            if (gokuDistance < powerBall.size + this.game.snakeSize) {
+            if (gokuDistance < powerBall.size + this.game.snakeSize && 
+                now - powerBall.lastGokuHit > powerBall.hitCooldown) {
                 // Goku hit - Game Over
                 console.log('Power Ball hit Goku! Game Over!');
-                powerBall.active = false;
+                powerBall.lastGokuHit = now;
+                // Don't remove power ball - it continues moving
                 
                 // Create explosion effect
                 if (this.game.particles) {
@@ -484,10 +490,12 @@ class SpecialAbilities {
                 (powerBall.y - vegetaHead.y) ** 2
             );
             
-            if (vegetaDistance < powerBall.size + this.game.aiSnake.segmentSize) {
+            if (vegetaDistance < powerBall.size + this.game.aiSnake.segmentSize && 
+                now - powerBall.lastVegetaHit > powerBall.hitCooldown) {
                 // Vegeta hit - Start regeneration
                 console.log('Power Ball hit Vegeta! Starting regeneration...');
-                powerBall.active = false;
+                powerBall.lastVegetaHit = now;
+                // Don't remove power ball - it continues moving
                 this.startVegetaRegeneration();
                 
                 // Create explosion effect
@@ -558,7 +566,7 @@ class SpecialAbilities {
             const alpha = (i / powerBall.trail.length) * 0.8;
             
             ctx.globalAlpha = alpha;
-            ctx.fillStyle = '#ff6600'; // Orange/red energy
+            ctx.fillStyle = '#cccccc'; // Light gray trail
             ctx.beginPath();
             ctx.arc(trail.x, trail.y, powerBall.size * (i / powerBall.trail.length), 0, Math.PI * 2);
             ctx.fill();
@@ -566,17 +574,17 @@ class SpecialAbilities {
         
         // Render main power ball
         ctx.globalAlpha = 1;
-        ctx.fillStyle = '#ff3300'; // Bright red
-        ctx.shadowColor = '#ff3300';
+        ctx.fillStyle = '#ffffff'; // White power ball
+        ctx.shadowColor = '#ffffff';
         ctx.shadowBlur = 20;
         ctx.beginPath();
         ctx.arc(powerBall.x, powerBall.y, powerBall.size, 0, Math.PI * 2);
         ctx.fill();
         
-        // Inner core
-        ctx.fillStyle = '#ffff00'; // Yellow core
-        ctx.shadowColor = '#ffff00';
-        ctx.shadowBlur = 15;
+        // Inner core for visibility
+        ctx.fillStyle = '#f0f0f0'; // Slightly darker white core
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(powerBall.x, powerBall.y, powerBall.size * 0.6, 0, Math.PI * 2);
         ctx.fill();
