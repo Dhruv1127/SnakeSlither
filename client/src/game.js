@@ -461,7 +461,7 @@ class SnakeGame {
             newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
             console.log('Wall collision detected');
             this.particles.createWallHitEffect(newHead.x, newHead.y);
-            this.gameOver();
+            this.gameOver(false, 'Hit wall');
             return;
         }
         
@@ -471,7 +471,7 @@ class SnakeGame {
             const distance = Math.sqrt((newHead.x - segment.x) ** 2 + (newHead.y - segment.y) ** 2);
             if (distance < this.snakeSize * 1.2) {
                 console.log('Self collision detected');
-                this.gameOver();
+                this.gameOver(false, 'Hit self');
                 return;
             }
         }
@@ -509,7 +509,7 @@ class SnakeGame {
             const distance = Math.sqrt((newHead.x - obstacle.x) ** 2 + (newHead.y - obstacle.y) ** 2);
             if (distance < this.snakeSize + obstacle.size) {
                 console.log('Obstacle collision detected');
-                this.gameOver();
+                this.gameOver(false, 'Hit obstacle');
                 return;
             }
         }
@@ -846,7 +846,12 @@ class SnakeGame {
         };
         
         console.log('Game over:', gameData);
-        setTimeout(() => { if (window.gameUI && window.gameUI.showGameOver) { window.gameUI.showGameOver(gameData); } }, 500);
+        // Immediately show game over screen to prevent lag/sticking
+        setTimeout(() => { 
+            if (window.gameUI && window.gameUI.showGameOver) { 
+                window.gameUI.showGameOver(gameData); 
+            } 
+        }, 100);
     }
 
     pause() {
@@ -1103,7 +1108,12 @@ class SnakeGame {
         };
         
         console.log('Game over:', gameData);
-        setTimeout(() => { if (window.gameUI && window.gameUI.showGameOver) { window.gameUI.showGameOver(gameData); } }, 500);
+        // Immediately show game over screen to prevent lag/sticking
+        setTimeout(() => { 
+            if (window.gameUI && window.gameUI.showGameOver) { 
+                window.gameUI.showGameOver(gameData); 
+            } 
+        }, 100);
     }
 
     eatFood() {

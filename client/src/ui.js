@@ -441,10 +441,14 @@ class GameUI {
         this.elements.highScoreMsg.style.display = isNewHighScore ? 'block' : 'none';
         
         // Custom title for collision
-        if (reason.includes('Vegeta')) {
-            this.elements.gameOverTitle.textContent = 'Defeated by Vegeta!';
-        } else if (reason.includes('Collided with Vegeta')) {
+        if (reason.includes('Vegeta') || reason.includes('Collided with Vegeta')) {
             this.elements.gameOverTitle.textContent = 'Collision with Vegeta!';
+        } else if (reason.includes('Hit wall')) {
+            this.elements.gameOverTitle.textContent = 'Hit the Wall!';
+        } else if (reason.includes('Hit self')) {
+            this.elements.gameOverTitle.textContent = 'Hit Yourself!';
+        } else if (reason.includes('Hit obstacle')) {
+            this.elements.gameOverTitle.textContent = 'Hit Obstacle!';
         } else if (data.mode === 'timeattack') {
             this.elements.gameOverTitle.textContent = 'Time\'s Up!';
         } else {
