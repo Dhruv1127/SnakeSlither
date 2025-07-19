@@ -10,10 +10,11 @@ class StartAnimation {
         
         // Dodge mechanics
         this.dodgeCount = 0;
-        this.maxDodges = 3;
+        this.maxDodges = 1; // Only need one dodge to trigger second saber
         this.dodgeSpeed = 5;
         this.isDodging = false;
         this.dodgeDirection = 0;
+        this.hasSuccessfullyDodged = false;
         
         // Animation elements
         this.snake = {
@@ -48,7 +49,7 @@ class StartAnimation {
             screenShake: 0
         };
         
-        // Laser saber - Glowing neon blue/green (random direction) - SLOWER SPEED
+        // First Laser saber - Glowing neon blue/green (random direction) - SLOWER SPEED
         this.laserSaber = {
             x: 0,
             y: 0,
@@ -61,6 +62,22 @@ class StartAnimation {
             glowColor: '#4dd0e1', // Light cyan glow
             direction: { x: 0, y: 0 }, // Movement direction
             rotationSpeed: 0.1 // Also slower rotation
+        };
+        
+        // Second Laser saber - Attacks controller when snake dodges first one
+        this.laserSaber2 = {
+            x: 0,
+            y: 0,
+            speed: 5, // Faster for controller strike
+            angle: 0,
+            length: 180,
+            active: false,
+            color: '#ff0066', // Hot pink/red
+            coreColor: '#ff3388', // Bright pink core
+            glowColor: '#ff99cc', // Pink glow
+            direction: { x: 0, y: 0 },
+            rotationSpeed: 0.15,
+            targetingController: false
         };
         
         // Initialize snake segments after other properties are set
@@ -153,6 +170,7 @@ class StartAnimation {
         }
         
         this.updateLaserSaber();
+        this.updateLaserSaber2();
         this.updateParticles();
         this.updateExplosionEffects();
         this.updateSnakeWave();
@@ -204,8 +222,20 @@ class StartAnimation {
         this.snake.headX = Math.max(50, Math.min(this.canvas.width - 200, this.snake.headX));
         this.snake.headY = Math.max(50, Math.min(this.canvas.height - 50, this.snake.headY));
         
-        // Transition to approach when laser saber passes
-        if (!this.laserSaber.active) {
+        // Check if snake successfully dodged first saber
+        if (!this.laserSaber.active && !this.hasSuccessfullyDodged) {
+            this.hasSuccessfullyDodged = true;
+            // Launch second saber to attack controller
+            this.initializeControllerAttackSaber();
+            
+            // Play dodge success sound
+            if (window.gameAudio) {
+                window.gameAudio.playSound('whoosh');
+            }
+        }
+        
+        // Transition to approach when both sabers are done
+        if (!this.laserSaber.active && !this.laserSaber2.active && this.hasSuccessfullyDodged) {
             this.phase = 'approach';
             this.snake.speed = 2;
             this.snake.targetY = this.controller.y;
@@ -384,6 +414,66 @@ class StartAnimation {
         }
     }
     
+    updateLaserSaber2() {
+        if (this.laserSaber2.active) {
+            // Move towards controller
+            this.laserSaber2.x += this.laserSaber2.direction.x * this.laserSaber2.speed;
+            this.laserSaber2.y += this.laserSaber2.direction.y * this.laserSaber2.speed;
+            this.laserSaber2.angle += this.laserSaber2.rotationSpeed;
+            
+            // Check if saber hits controller
+            const dx = this.laserSaber2.x - this.controller.x;
+            const dy = this.laserSaber2.y - this.controller.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 80 && this.laserSaber2.targetingController) {
+                // Saber cuts controller - trigger explosion
+                this.laserSaber2.active = false;
+                this.controller.bitten = true;
+                this.phase = 'explosion';
+                this.createExplosion();
+                
+                // Play controller cut sound
+                if (window.gameAudio) {
+                    window.gameAudio.playSound('explosion');
+                }
+                
+                console.log('Second laser saber cuts the controller!');
+                return;
+            }
+            
+            // Deactivate when off screen
+            const margin = 300;
+            if (this.laserSaber2.x < -margin || this.laserSaber2.x > this.canvas.width + margin ||
+                this.laserSaber2.y < -margin || this.laserSaber2.y > this.canvas.height + margin) {
+                this.laserSaber2.active = false;
+            }
+        }
+    }
+    
+    initializeControllerAttackSaber() {
+        // Position second saber to attack controller from opposite side
+        const controllerX = this.controller.x;
+        const controllerY = this.controller.y;
+        
+        // Choose attack direction (from left side of screen)
+        this.laserSaber2.x = -100;
+        this.laserSaber2.y = controllerY + (Math.random() - 0.5) * 100; // Slight vertical variation
+        
+        // Calculate direction to controller
+        const dx = controllerX - this.laserSaber2.x;
+        const dy = controllerY - this.laserSaber2.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        this.laserSaber2.direction.x = dx / distance;
+        this.laserSaber2.direction.y = dy / distance;
+        this.laserSaber2.active = true;
+        this.laserSaber2.targetingController = true;
+        this.laserSaber2.angle = Math.atan2(dy, dx);
+        
+        console.log('Second laser saber targeting controller after snake dodge!');
+    }
+    
     updateExplosionEffects() {
         // Update explosion particles
         this.effects.explosionParticles = this.effects.explosionParticles.filter(particle => {
@@ -472,9 +562,12 @@ class StartAnimation {
         // Clear canvas with space background
         this.renderSpaceBackground();
         
-        // Render laser saber
+        // Render laser sabers
         if (this.laserSaber.active) {
             this.renderLaserSaber();
+        }
+        if (this.laserSaber2.active) {
+            this.renderLaserSaber2();
         }
         
         // Render game controller
@@ -729,6 +822,65 @@ class StartAnimation {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
+    }
+    
+    renderLaserSaber2() {
+        this.ctx.save();
+        
+        this.ctx.translate(this.laserSaber2.x, this.laserSaber2.y);
+        this.ctx.rotate(this.laserSaber2.angle);
+        
+        // Outer glow - Hot pink/red
+        this.ctx.strokeStyle = this.laserSaber2.glowColor;
+        this.ctx.lineWidth = 18;
+        this.ctx.shadowColor = this.laserSaber2.glowColor;
+        this.ctx.shadowBlur = 25;
+        this.ctx.globalAlpha = 0.4;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber2.length / 2);
+        this.ctx.lineTo(0, this.laserSaber2.length / 2);
+        this.ctx.stroke();
+        
+        // Middle blade
+        this.ctx.strokeStyle = this.laserSaber2.color;
+        this.ctx.lineWidth = 10;
+        this.ctx.shadowBlur = 15;
+        this.ctx.globalAlpha = 0.9;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber2.length / 2);
+        this.ctx.lineTo(0, this.laserSaber2.length / 2);
+        this.ctx.stroke();
+        
+        // Core blade
+        this.ctx.strokeStyle = this.laserSaber2.coreColor;
+        this.ctx.lineWidth = 3;
+        this.ctx.shadowBlur = 8;
+        this.ctx.globalAlpha = 1;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber2.length / 2);
+        this.ctx.lineTo(0, this.laserSaber2.length / 2);
+        this.ctx.stroke();
+        
+        // Saber handle - Darker for second saber
+        this.ctx.fillStyle = '#222222';
+        this.ctx.shadowBlur = 0;
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillRect(-7, -20, 14, 40);
+        
+        // Handle details - Red accents
+        this.ctx.strokeStyle = '#ff3333';
+        this.ctx.lineWidth = 1;
+        for (let i = -12; i <= 12; i += 4) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(-5, i);
+            this.ctx.lineTo(5, i);
+            this.ctx.stroke();
+        }
+        
+        this.ctx.restore();
     }
 }
 
