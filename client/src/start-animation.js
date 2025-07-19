@@ -1,10 +1,10 @@
-// Start Screen Animation - Snake Biting Game Controller
+// Start Screen Animation - Epic Snake vs Laser Saber
 class StartAnimation {
     constructor() {
         this.canvas = document.getElementById('start-animation-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.animationId = null;
-        this.phase = 'enter'; // enter, approach, bite, finish
+        this.phase = 'enter'; // enter, dodge, approach, bite, explosion, finish
         this.time = 0;
         this.onComplete = null;
         
@@ -20,6 +20,9 @@ class StartAnimation {
             segmentSpacing: 12
         };
         
+        // Make canvas full screen
+        this.setupFullScreen();
+        
         this.controller = {
             x: 400,
             y: 200,
@@ -32,16 +35,57 @@ class StartAnimation {
         this.effects = {
             particles: [],
             cracks: [],
-            biteFlash: 0
+            biteFlash: 0,
+            explosionParticles: [],
+            fireParticles: [],
+            screenShake: 0
         };
         
-        // Initialize snake segments
-        for (let i = 0; i < 15; i++) {
-            this.snake.segments.push({
-                x: this.snake.headX - (i * this.snake.segmentSpacing),
-                y: this.snake.headY + Math.sin(i * 0.3) * 5,
-                size: this.snake.segmentSize * (1 - i * 0.02)
-            });
+        // Laser saber
+        this.laserSaber = {
+            x: this.canvas.width + 100,
+            y: this.canvas.height / 2,
+            speed: 8,
+            angle: 0,
+            length: 200,
+            active: true,
+            color: '#ff0000'
+        };
+        
+        // Initialize snake segments after other properties are set
+        setTimeout(() => {
+            for (let i = 0; i < 15; i++) {
+                this.snake.segments.push({
+                    x: this.snake.headX - (i * this.snake.segmentSpacing),
+                    y: this.snake.headY + Math.sin(i * 0.3) * 5,
+                    size: this.snake.segmentSize * (1 - i * 0.02)
+                });
+            }
+        }, 0);
+    }
+    
+    setupFullScreen() {
+        // Make canvas full screen
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.canvas.style.position = 'fixed';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.zIndex = '1000';
+        
+        // Update positions for full screen
+        if (this.snake) {
+            this.snake.headY = this.canvas.height / 2;
+            this.snake.targetY = this.canvas.height / 2;
+            this.snake.targetX = this.canvas.width - 350;
+        }
+        if (this.controller) {
+            this.controller.x = this.canvas.width - 200;
+            this.controller.y = this.canvas.height / 2;
+        }
+        if (this.laserSaber) {
+            this.laserSaber.x = this.canvas.width + 100;
+            this.laserSaber.y = this.canvas.height / 2;
         }
     }
     
@@ -71,19 +115,28 @@ class StartAnimation {
             case 'enter':
                 this.updateEnterPhase();
                 break;
+            case 'dodge':
+                this.updateDodgePhase();
+                break;
             case 'approach':
                 this.updateApproachPhase();
                 break;
             case 'bite':
                 this.updateBitePhase();
                 break;
+            case 'explosion':
+                this.updateExplosionPhase();
+                break;
             case 'finish':
                 this.updateFinishPhase();
                 break;
         }
         
+        this.updateLaserSaber();
         this.updateParticles();
+        this.updateExplosionEffects();
         this.updateSnakeWave();
+        this.updateScreenShake();
     }
     
     updateEnterPhase() {
@@ -93,9 +146,37 @@ class StartAnimation {
         // Update snake body following head
         this.updateSnakeBody();
         
-        if (this.snake.headX >= 200) {
+        if (this.snake.headX >= this.canvas.width * 0.3) {
+            this.phase = 'dodge';
+            this.snake.speed = 3;
+            // Start laser saber attack
+            this.laserSaber.x = this.canvas.width + 100;
+            this.laserSaber.active = true;
+        }
+    }
+    
+    updateDodgePhase() {
+        // Snake dodges the laser saber
+        const saberDistance = Math.abs(this.snake.headX - this.laserSaber.x);
+        
+        if (saberDistance < 150 && this.laserSaber.active) {
+            // Dodge by moving up and down
+            const dodgeAmplitude = 80;
+            this.snake.headY = this.canvas.height / 2 + Math.sin(this.time * 10) * dodgeAmplitude;
+        } else {
+            // Return to center position
+            this.snake.headY += (this.canvas.height / 2 - this.snake.headY) * 0.1;
+        }
+        
+        // Continue moving right while dodging
+        this.snake.headX += this.snake.speed;
+        this.updateSnakeBody();
+        
+        // Transition to approach when laser saber passes
+        if (this.laserSaber.x < -200) {
             this.phase = 'approach';
-            this.snake.speed = 1;
+            this.snake.speed = 2;
+            this.snake.targetY = this.controller.y;
         }
     }
     
@@ -117,16 +198,27 @@ class StartAnimation {
     
     updateBitePhase() {
         // Bite animation
-        this.controller.shake = Math.sin(this.time * 50) * 3;
+        this.controller.shake = Math.sin(this.time * 50) * 5;
         this.effects.biteFlash = Math.max(0, this.effects.biteFlash - 0.05);
         
         if (!this.controller.bitten) {
             this.controller.bitten = true;
             this.effects.biteFlash = 1;
             this.createBiteEffects();
+            
+            // Transition to explosion phase
+            setTimeout(() => {
+                this.phase = 'explosion';
+                this.createExplosion();
+            }, 1000);
         }
+    }
+    
+    updateExplosionPhase() {
+        // Screen shake during explosion
+        this.effects.screenShake = Math.max(0, this.effects.screenShake - 0.5);
         
-        if (this.time > 2) {
+        if (this.time > 4) {
             this.phase = 'finish';
         }
     }
@@ -181,35 +273,117 @@ class StartAnimation {
         });
     }
     
+    updateLaserSaber() {
+        if (this.laserSaber.active) {
+            this.laserSaber.x -= this.laserSaber.speed;
+            this.laserSaber.angle += 0.2;
+            
+            // Deactivate when off screen
+            if (this.laserSaber.x < -300) {
+                this.laserSaber.active = false;
+            }
+        }
+    }
+    
+    updateExplosionEffects() {
+        // Update explosion particles
+        this.effects.explosionParticles = this.effects.explosionParticles.filter(particle => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vy += 0.2; // gravity
+            particle.life -= 0.01;
+            particle.size *= 0.98;
+            return particle.life > 0;
+        });
+        
+        // Update fire particles
+        this.effects.fireParticles = this.effects.fireParticles.filter(particle => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life -= 0.02;
+            particle.size *= 0.99;
+            return particle.life > 0;
+        });
+    }
+    
+    updateScreenShake() {
+        this.effects.screenShake = Math.max(0, this.effects.screenShake - 0.3);
+    }
+    
     createBiteEffects() {
         // Create particles when snake bites controller
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 30; i++) {
             this.effects.particles.push({
                 x: this.controller.x - 30,
                 y: this.controller.y,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8,
-                size: Math.random() * 4 + 2,
+                vx: (Math.random() - 0.5) * 12,
+                vy: (Math.random() - 0.5) * 12,
+                size: Math.random() * 6 + 3,
                 life: 1,
                 color: `hsl(${Math.random() * 60 + 20}, 70%, 60%)`
             });
         }
         
         // Create controller cracks
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 8; i++) {
             this.effects.cracks.push({
-                x: this.controller.x - 40 + Math.random() * 80,
-                y: this.controller.y - 20 + Math.random() * 40,
-                length: Math.random() * 20 + 10,
+                x: this.controller.x - 60 + Math.random() * 120,
+                y: this.controller.y - 40 + Math.random() * 80,
+                length: Math.random() * 30 + 15,
                 angle: Math.random() * Math.PI * 2
             });
         }
     }
     
+    createExplosion() {
+        // Create massive explosion effect
+        this.effects.screenShake = 20;
+        
+        // Explosion particles
+        for (let i = 0; i < 100; i++) {
+            this.effects.explosionParticles.push({
+                x: this.controller.x,
+                y: this.controller.y,
+                vx: (Math.random() - 0.5) * 20,
+                vy: (Math.random() - 0.5) * 20,
+                size: Math.random() * 15 + 5,
+                life: 1,
+                color: `hsl(${Math.random() * 60 + 10}, 90%, ${50 + Math.random() * 30}%)`
+            });
+        }
+        
+        // Fire particles covering screen
+        for (let i = 0; i < 200; i++) {
+            this.effects.fireParticles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3,
+                size: Math.random() * 20 + 10,
+                life: 1,
+                color: `hsl(${Math.random() * 40 + 10}, 90%, ${40 + Math.random() * 40}%)`
+            });
+        }
+    }
+    
     render() {
-        // Clear canvas
-        this.ctx.fillStyle = '#0a0a0a';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.save();
+        
+        // Apply screen shake
+        if (this.effects.screenShake > 0) {
+            this.ctx.translate(
+                (Math.random() - 0.5) * this.effects.screenShake,
+                (Math.random() - 0.5) * this.effects.screenShake
+            );
+        }
+        
+        // Clear canvas with space background
+        this.renderSpaceBackground();
+        
+        // Render laser saber
+        if (this.laserSaber.active) {
+            this.renderLaserSaber();
+        }
         
         // Render game controller
         this.renderController();
@@ -220,10 +394,93 @@ class StartAnimation {
         // Render effects
         this.renderEffects();
         
+        // Render explosion effects
+        this.renderExplosionEffects();
+        
         // Render title if in finish phase
         if (this.phase === 'finish' || this.phase === 'finished') {
             this.renderTitle();
         }
+        
+        this.ctx.restore();
+    }
+    
+    renderSpaceBackground() {
+        // Space gradient background
+        const gradient = this.ctx.createRadialGradient(
+            this.canvas.width / 2, this.canvas.height / 2, 0,
+            this.canvas.width / 2, this.canvas.height / 2, Math.max(this.canvas.width, this.canvas.height)
+        );
+        gradient.addColorStop(0, '#000011');
+        gradient.addColorStop(0.5, '#000008');
+        gradient.addColorStop(1, '#000000');
+        
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Add stars
+        this.ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 100; i++) {
+            const x = (i * 137) % this.canvas.width;
+            const y = (i * 241) % this.canvas.height;
+            const size = Math.abs(Math.sin(i)) + 0.5; // Ensure positive radius, minimum 0.5
+            if (size > 0) {
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+        }
+    }
+    
+    renderLaserSaber() {
+        this.ctx.save();
+        
+        // Laser saber blade
+        this.ctx.strokeStyle = this.laserSaber.color;
+        this.ctx.lineWidth = 8;
+        this.ctx.shadowColor = this.laserSaber.color;
+        this.ctx.shadowBlur = 20;
+        
+        this.ctx.translate(this.laserSaber.x, this.laserSaber.y);
+        this.ctx.rotate(this.laserSaber.angle);
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -this.laserSaber.length / 2);
+        this.ctx.lineTo(0, this.laserSaber.length / 2);
+        this.ctx.stroke();
+        
+        // Saber handle
+        this.ctx.fillStyle = '#333333';
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillRect(-5, -20, 10, 40);
+        
+        this.ctx.restore();
+    }
+    
+    renderExplosionEffects() {
+        // Render explosion particles
+        this.effects.explosionParticles.forEach(particle => {
+            this.ctx.save();
+            this.ctx.globalAlpha = particle.life;
+            this.ctx.fillStyle = particle.color;
+            this.ctx.shadowColor = particle.color;
+            this.ctx.shadowBlur = 10;
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        });
+        
+        // Render fire particles
+        this.effects.fireParticles.forEach(particle => {
+            this.ctx.save();
+            this.ctx.globalAlpha = particle.life * 0.7;
+            this.ctx.fillStyle = particle.color;
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        });
     }
     
     renderController() {
@@ -335,20 +592,20 @@ class StartAnimation {
     renderTitle() {
         this.ctx.save();
         this.ctx.textAlign = 'center';
-        this.ctx.font = 'bold 48px Arial';
+        this.ctx.font = 'bold 72px Arial';
         this.ctx.fillStyle = '#4CAF50';
         this.ctx.shadowColor = '#4CAF50';
-        this.ctx.shadowBlur = 20;
+        this.ctx.shadowBlur = 30;
         
-        const alpha = Math.min(1, (this.time - 2) * 2);
+        const alpha = Math.min(1, (this.time - 3) * 3);
         this.ctx.globalAlpha = alpha;
         
-        this.ctx.fillText('SNAKE VIPER', this.canvas.width / 2, 100);
+        this.ctx.fillText('SNAKE VIPER', this.canvas.width / 2, this.canvas.height / 2 - 50);
         
-        this.ctx.font = 'bold 24px Arial';
+        this.ctx.font = 'bold 36px Arial';
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.shadowBlur = 10;
-        this.ctx.fillText('Ready to Hunt!', this.canvas.width / 2, 140);
+        this.ctx.shadowBlur = 15;
+        this.ctx.fillText('Ready to Hunt!', this.canvas.width / 2, this.canvas.height / 2 + 20);
         
         this.ctx.restore();
     }
@@ -362,10 +619,22 @@ class StartAnimation {
 }
 
 // Create global instance when DOM is ready
+function initStartAnimation() {
+    try {
+        const canvas = document.getElementById('start-animation-canvas');
+        if (canvas) {
+            window.startAnimation = new StartAnimation();
+            console.log('Start animation initialized successfully');
+        } else {
+            console.error('Start animation canvas not found');
+        }
+    } catch (error) {
+        console.error('Failed to initialize start animation:', error);
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        window.startAnimation = new StartAnimation();
-    });
+    document.addEventListener('DOMContentLoaded', initStartAnimation);
 } else {
-    window.startAnimation = new StartAnimation();
+    initStartAnimation();
 }

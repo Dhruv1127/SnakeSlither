@@ -37,17 +37,7 @@
             
             // Wait for start animation to complete
             await new Promise(resolve => {
-                // Ensure startAnimation is available
-                const waitForAnimation = () => {
-                    if (window.startAnimation) {
-                        startAnimation.start(() => {
-                            resolve();
-                        });
-                    } else {
-                        setTimeout(waitForAnimation, 100);
-                    }
-                };
-                waitForAnimation();
+                setTimeout(resolve, 500); // Quick timeout to show home screen
             });
             
             // Show loading screen
@@ -57,13 +47,21 @@
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             // Create game instance
-            window.game = new SnakeGame();
-            
-            // Initialize AI snake after game is ready
-            window.game.aiSnake = new AISnake(window.game);
-            
-            // Activate enhanced features
-            activateEnhancements();
+            if (typeof SnakeGame !== 'undefined') {
+                window.game = new SnakeGame();
+                
+                // Initialize AI snake after game is ready
+                if (typeof AISnake !== 'undefined') {
+                    window.game.aiSnake = new AISnake(window.game);
+                }
+                
+                // Activate enhanced features
+                if (typeof activateEnhancements !== 'undefined') {
+                    activateEnhancements();
+                }
+            } else {
+                throw new Error('SnakeGame class not found');
+            }
             
             // Initialize UI
             gameUI.init();
