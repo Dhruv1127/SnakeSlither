@@ -224,10 +224,35 @@ class AISnake {
     }
     
     checkCollisions() {
-        // Snake collision disabled - only power balls can end the game now
-        // Goku and Vegeta can pass through each other safely
+        // Check collision with player snake (Goku)
+        if (this.game.snake && this.game.snake.length > 0 && this.segments.length > 0) {
+            const vegetaHead = this.segments[0];
+            const gokuHead = this.game.snake[0];
+            
+            if (vegetaHead && gokuHead) {
+                const distance = this.getDistance(vegetaHead, gokuHead);
+                if (distance < this.segmentSize + this.game.snakeSize) {
+                    console.log('Vegeta collided with Son Goku! Battle ended!');
+                    this.handlePlayerCollision();
+                    return;
+                }
+                
+                // Check collision with Goku's body segments
+                for (let i = 1; i < this.game.snake.length; i++) {
+                    const gokuSegment = this.game.snake[i];
+                    if (gokuSegment) {
+                        const segmentDistance = this.getDistance(vegetaHead, gokuSegment);
+                        if (segmentDistance < this.segmentSize + this.game.snakeSize) {
+                            console.log('Vegeta collided with Son Goku\'s body! Battle ended!');
+                            this.handlePlayerCollision();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
         
-        // Only check for food collision
+        // Check for food collision
         if (this.game.food && this.segments.length > 0) {
             const head = this.segments[0];
             const foodDistance = this.getDistance(head, this.game.food);

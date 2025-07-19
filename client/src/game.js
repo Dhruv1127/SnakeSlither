@@ -476,6 +476,34 @@ class SnakeGame {
             }
         }
         
+        // Check collision with Vegeta (AI snake)
+        if (this.aiSnake && this.aiSnake.segments && this.aiSnake.segments.length > 0) {
+            const vegetaHead = this.aiSnake.segments[0];
+            
+            // Check collision with Vegeta's head
+            if (vegetaHead) {
+                const distance = Math.sqrt((newHead.x - vegetaHead.x) ** 2 + (newHead.y - vegetaHead.y) ** 2);
+                if (distance < this.snakeSize + this.aiSnake.segmentSize) {
+                    console.log('Son Goku collided with Vegeta! Battle ended!');
+                    this.gameOver(false, 'Collided with Vegeta!');
+                    return;
+                }
+            }
+            
+            // Check collision with Vegeta's body segments
+            for (let i = 1; i < this.aiSnake.segments.length; i++) {
+                const vegetaSegment = this.aiSnake.segments[i];
+                if (vegetaSegment) {
+                    const segmentDistance = Math.sqrt((newHead.x - vegetaSegment.x) ** 2 + (newHead.y - vegetaSegment.y) ** 2);
+                    if (segmentDistance < this.snakeSize + this.aiSnake.segmentSize) {
+                        console.log('Son Goku collided with Vegeta\'s body! Battle ended!');
+                        this.gameOver(false, 'Collided with Vegeta\'s body!');
+                        return;
+                    }
+                }
+            }
+        }
+        
         // Check obstacle collision
         for (let obstacle of this.obstacles) {
             const distance = Math.sqrt((newHead.x - obstacle.x) ** 2 + (newHead.y - obstacle.y) ** 2);
@@ -795,7 +823,7 @@ class SnakeGame {
     }
 
     // Game control methods
-    gameOver(isWin = false) {
+    gameOver(isWin = false, reason = '') {
         this.isRunning = false;
         clearInterval(this.gameTimer);
         cancelAnimationFrame(this.animationId);
@@ -813,7 +841,8 @@ class SnakeGame {
             snakeLength: this.snake.length,
             gameTime: this.gameTime,
             mode: this.gameMode,
-            isWin: isWin
+            isWin: isWin,
+            reason: reason
         };
         
         console.log('Game over:', gameData);
@@ -1051,7 +1080,7 @@ class SnakeGame {
     }
 
     // Game control methods
-    gameOver(isWin = false) {
+    gameOver(isWin = false, reason = '') {
         this.isRunning = false;
         clearInterval(this.gameTimer);
         cancelAnimationFrame(this.animationId);
@@ -1069,7 +1098,8 @@ class SnakeGame {
             snakeLength: this.snake.length,
             gameTime: this.gameTime,
             mode: this.gameMode,
-            isWin: isWin
+            isWin: isWin,
+            reason: reason
         };
         
         console.log('Game over:', gameData);

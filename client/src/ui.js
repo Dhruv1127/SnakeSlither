@@ -443,6 +443,8 @@ class GameUI {
         // Custom title for collision
         if (reason.includes('Vegeta')) {
             this.elements.gameOverTitle.textContent = 'Defeated by Vegeta!';
+        } else if (reason.includes('Collided with Vegeta')) {
+            this.elements.gameOverTitle.textContent = 'Collision with Vegeta!';
         } else if (data.mode === 'timeattack') {
             this.elements.gameOverTitle.textContent = 'Time\'s Up!';
         } else {
