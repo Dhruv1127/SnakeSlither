@@ -63,6 +63,11 @@ class SpecialAbilities {
         speedBoost.cooldown = speedBoost.maxCooldown;
         speedBoost.activations++;
         
+        // Notify Vegeta AI that Goku used an ability (this counts as a dodge action)
+        if (this.game.aiSnake && this.game.aiSnake.onGokuDodge) {
+            this.game.aiSnake.onGokuDodge();
+        }
+        
         // Play sound effect
         if (window.gameAudio) {
             window.gameAudio.playSound('speedboost');
@@ -93,6 +98,11 @@ class SpecialAbilities {
         powerBall.energy = 100;
         powerBall.cooldown = powerBall.maxCooldown;
         powerBall.trail = [];
+        
+        // Notify Vegeta AI that Goku used an ability
+        if (this.game.aiSnake && this.game.aiSnake.onGokuDodge) {
+            this.game.aiSnake.onGokuDodge();
+        }
         
         // Play sound effect
         if (window.gameAudio) {

@@ -149,6 +149,22 @@ class GameAudio {
         }
     }
 
+    // Enhanced Dragon Ball Z background music
+    playBackgroundMusic() {
+        if (!this.isEnabled || !this.sounds.background) return;
+        
+        try {
+            this.backgroundMusic = this.sounds.background.cloneNode();
+            this.backgroundMusic.loop = true;
+            this.backgroundMusic.volume = this.volume * 0.7; // Enhanced volume for epic theme
+            this.backgroundMusic.playbackRate = 1.1; // Slightly faster for more intensity
+            this.backgroundMusic.play();
+            console.log('Dragon Ball Z enhanced theme music started');
+        } catch (error) {
+            console.warn('Error starting background music:', error);
+        }
+    }
+    
     // Volume control
     setVolume(volume) {
         this.volume = Math.max(0, Math.min(1, volume));
@@ -162,7 +178,7 @@ class GameAudio {
         
         // Update background music volume
         if (this.backgroundMusic) {
-            this.backgroundMusic.volume = this.volume * 0.3;
+            this.backgroundMusic.volume = this.volume * 0.7; // Enhanced volume
         }
     }
 

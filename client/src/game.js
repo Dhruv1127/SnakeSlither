@@ -936,6 +936,14 @@ class SnakeGame {
         if (this.specialAbilities) {
             this.specialAbilities.renderSpecialAbilities(this.ctx);
         }
+        
+        // Render AI enemy snake and its power balls
+        if (this.aiSnake) {
+            this.aiSnake.render(this.ctx);
+            if (this.aiSnake.renderPowerBalls) {
+                this.aiSnake.renderPowerBalls(this.ctx);
+            }
+        }
     }
 
     renderBackground() {

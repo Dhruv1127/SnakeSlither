@@ -30,6 +30,15 @@ class AISnake {
         this.score = 0;
         this.targetScore = 100; // Score to beat player
         
+        // Smart AI Power Ball System
+        this.powerBalls = [];
+        this.lastPowerBallTime = 0;
+        this.powerBallCooldown = 2000; // 2 seconds base cooldown
+        this.gokuDodgeCount = 0; // Track how many times Goku dodged
+        this.canUsePowerBall = false; // Becomes true after first Goku dodge
+        this.quickExchangeMode = false; // Rapid power ball exchanges
+        this.quickExchangeTimer = 0;
+        
         // Initialize position away from player
         this.initializePosition();
         
@@ -69,6 +78,8 @@ class AISnake {
         this.checkBoundaries();
         this.checkCollisions();
         this.grow();
+        this.updatePowerBalls(deltaTime);
+        this.checkSmartPowerBallUsage();
     }
     
     makeDecision() {
@@ -370,5 +381,225 @@ class AISnake {
         this.segments = [];
         this.initializePosition();
         this.lastDecisionTime = 0;
+        // Reset power ball system
+        this.powerBalls = [];
+        this.gokuDodgeCount = 0;
+        this.canUsePowerBall = false;
+        this.quickExchangeMode = false;
+    }
+    
+    // Smart Power Ball System for Vegeta AI
+    checkSmartPowerBallUsage() {
+        const now = Date.now();
+        const playerHead = this.game.snake[0];
+        if (!playerHead || !this.segments[0]) return;
+        
+        const head = this.segments[0];
+        const distanceToPlayer = this.getDistance(head, playerHead);
+        
+        // Enable power ball after Goku uses special abilities once
+        if (!this.canUsePowerBall && this.gokuDodgeCount > 0) {
+            this.canUsePowerBall = true;
+            console.log("Vegeta can now use Power Balls after observing Goku's abilities!");
+        }
+        
+        // Quick exchange mode after first power ball exchange
+        if (this.quickExchangeMode) {
+            this.quickExchangeTimer -= 16; // Assuming 60fps
+            if (this.quickExchangeTimer <= 0) {
+                this.quickExchangeMode = false;
+            } else {
+                // Rapid fire power balls during exchange mode
+                if (now - this.lastPowerBallTime > 800 && Math.random() < 0.4) {
+                    this.launchPowerBall(playerHead);
+                }
+                return;
+            }
+        }
+        
+        // Strategic power ball usage
+        if (this.canUsePowerBall && now - this.lastPowerBallTime > this.powerBallCooldown) {
+            const shouldAttack = this.evaluatePowerBallStrategy(distanceToPlayer, playerHead);
+            
+            if (shouldAttack) {
+                this.launchPowerBall(playerHead);
+                
+                // Start quick exchange mode randomly
+                if (Math.random() < 0.3) {
+                    this.quickExchangeMode = true;
+                    this.quickExchangeTimer = 3000; // 3 seconds of rapid exchanges
+                    console.log("Vegeta enters rapid power ball exchange mode!");
+                }
+            }
+        }
+    }
+    
+    evaluatePowerBallStrategy(distanceToPlayer, playerHead) {
+        // Strategic conditions for power ball usage
+        const isInRange = distanceToPlayer > 80 && distanceToPlayer < 200;
+        const hasLineOfSight = this.checkLineOfSight(playerHead);
+        const playerMovingPredictably = this.predictPlayerMovement(playerHead);
+        
+        // Vegeta's aggressive personality - higher chance to attack
+        const baseChance = 0.15;
+        const aggressionBonus = this.aggressiveness * 0.2;
+        const rangeBonus = isInRange ? 0.3 : 0;
+        const sightBonus = hasLineOfSight ? 0.2 : 0;
+        const movementBonus = playerMovingPredictably ? 0.25 : 0;
+        
+        const totalChance = baseChance + aggressionBonus + rangeBonus + sightBonus + movementBonus;
+        
+        return Math.random() < totalChance;
+    }
+    
+    checkLineOfSight(target) {
+        // Simple line of sight check - no major obstacles
+        const head = this.segments[0];
+        const dx = target.x - head.x;
+        const dy = target.y - head.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Check if path is relatively clear (simplified)
+        return distance < 300; // Assume clear line of sight within range
+    }
+    
+    predictPlayerMovement(playerHead) {
+        // Predict if player is moving in a predictable pattern
+        if (!this.lastPlayerPos) {
+            this.lastPlayerPos = { x: playerHead.x, y: playerHead.y };
+            return false;
+        }
+        
+        const dx = playerHead.x - this.lastPlayerPos.x;
+        const dy = playerHead.y - this.lastPlayerPos.y;
+        const speed = Math.sqrt(dx * dx + dy * dy);
+        
+        this.lastPlayerPos = { x: playerHead.x, y: playerHead.y };
+        
+        // If player is moving at consistent speed, they're predictable
+        return speed > 2 && speed < 8;
+    }
+    
+    launchPowerBall(target) {
+        const head = this.segments[0];
+        if (!head) return;
+        
+        // Calculate direction with prediction
+        const dx = target.x - head.x;
+        const dy = target.y - head.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Lead target slightly for better accuracy
+        const leadFactor = 0.3;
+        const predictedX = target.x + (target.vx || 0) * leadFactor;
+        const predictedY = target.y + (target.vy || 0) * leadFactor;
+        
+        const finalDx = predictedX - head.x;
+        const finalDy = predictedY - head.y;
+        const finalDistance = Math.sqrt(finalDx * finalDx + finalDy * finalDy);
+        
+        this.powerBalls.push({
+            x: head.x,
+            y: head.y,
+            vx: (finalDx / finalDistance) * 8, // Fast projectile
+            vy: (finalDy / finalDistance) * 8,
+            size: 8,
+            life: 1,
+            color: '#ffeb3b', // Golden energy
+            trail: []
+        });
+        
+        this.lastPowerBallTime = Date.now();
+        
+        // Play power ball sound
+        if (window.gameAudio) {
+            window.gameAudio.playSound('powerup');
+        }
+        
+        console.log("Vegeta launches Power Ball at Goku!");
+    }
+    
+    updatePowerBalls(deltaTime) {
+        this.powerBalls = this.powerBalls.filter(ball => {
+            // Update position
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            
+            // Update trail
+            ball.trail.push({ x: ball.x, y: ball.y, life: 1 });
+            ball.trail = ball.trail.filter(t => {
+                t.life -= 0.05;
+                return t.life > 0;
+            });
+            
+            // Check collision with player
+            const playerHead = this.game.snake[0];
+            if (playerHead) {
+                const dx = ball.x - playerHead.x;
+                const dy = ball.y - playerHead.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 15) {
+                    // Hit player - damage or effect
+                    this.onPowerBallHit();
+                    return false; // Remove ball
+                }
+            }
+            
+            // Remove if out of bounds
+            const margin = 50;
+            if (ball.x < -margin || ball.x > this.game.canvasSize + margin ||
+                ball.y < -margin || ball.y > this.game.canvasSize + margin) {
+                return false;
+            }
+            
+            ball.life -= 0.01;
+            return ball.life > 0;
+        });
+    }
+    
+    onPowerBallHit() {
+        // Effect when power ball hits Goku
+        console.log("Vegeta's Power Ball hits Goku!");
+        
+        if (window.gameAudio) {
+            window.gameAudio.playSound('clash');
+        }
+        
+        // Could reduce player score or trigger special effect
+        // For now, just log the hit
+    }
+    
+    // Method to be called when Goku dodges (from game.js)
+    onGokuDodge() {
+        this.gokuDodgeCount++;
+        console.log(`Goku dodged! Count: ${this.gokuDodgeCount}`);
+    }
+    
+    // Render power balls
+    renderPowerBalls(ctx) {
+        this.powerBalls.forEach(ball => {
+            // Render trail
+            ball.trail.forEach(point => {
+                ctx.save();
+                ctx.globalAlpha = point.life * 0.5;
+                ctx.fillStyle = ball.color;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // Render power ball
+            ctx.save();
+            ctx.globalAlpha = ball.life;
+            ctx.fillStyle = ball.color;
+            ctx.shadowColor = ball.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
     }
 }

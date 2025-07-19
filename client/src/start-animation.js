@@ -8,6 +8,13 @@ class StartAnimation {
         this.time = 0;
         this.onComplete = null;
         
+        // Dodge mechanics
+        this.dodgeCount = 0;
+        this.maxDodges = 3;
+        this.dodgeSpeed = 5;
+        this.isDodging = false;
+        this.dodgeDirection = 0;
+        
         // Animation elements
         this.snake = {
             segments: [],
@@ -97,9 +104,13 @@ class StartAnimation {
         this.phase = 'enter';
         this.time = 0;
         
-        // Play start animation sound effects
+        // Play enhanced start animation music and sound effects
         if (window.gameAudio) {
             window.gameAudio.playSound('whoosh'); // Snake entering
+            // Start epic background music for animation
+            setTimeout(() => {
+                window.gameAudio.playBackgroundMusic();
+            }, 500);
         }
         
         this.animate();
