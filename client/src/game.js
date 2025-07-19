@@ -20,13 +20,16 @@ class SnakeGame {
         this.canvasSize = 400; // Base size
         this.resizeCanvas();
         
-        // Snake properties for smooth movement
+        // Snake properties for smooth movement with wave mechanics
         this.snake = [];
         this.snakeSize = 12; // Snake segment radius
         this.segmentSpacing = 16; // Distance between segments
         this.food = null;
         this.foodSize = 8;
         this.obstacles = [];
+        this.waveAmplitude = 0; // Wave motion intensity
+        this.waveFrequency = 0.1; // Wave motion speed
+        this.growthQueue = 0; // Number of segments to grow
         
         // Smooth movement direction (angle in radians)
         this.direction = 0; // Current direction
@@ -46,13 +49,16 @@ class SnakeGame {
         // Visual effects
         this.particles = new ParticleSystem(this.canvas, this.ctx);
         
+        // AI Enemy Snake (initialize after game setup)
+        this.aiSnake = null;
+        
         // Input handling
         this.setupInputHandlers();
         
         // Animation frame
         this.animationId = null;
         
-        console.log('Snake Viper game initialized with smooth movement');
+        console.log('Snake Viper game initialized with smooth movement and AI enemy');
     }
 
     resizeCanvas() {

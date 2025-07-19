@@ -50,6 +50,14 @@
   box-sizing: border-box;
 }
 
+/* Start Animation Styles */
+#start-animation-canvas {
+  border: 2px solid var(--accent-primary);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  box-shadow: 0 0 30px var(--glow);
+}
+
 body {
   font-family: 'Arial', sans-serif;
   background: var(--bg-primary);

@@ -20,6 +20,9 @@
             loadingScreen.style.display = 'none';
         }
         
+        // Hide start animation screen
+        hideStartAnimation();
+        
         // Show home screen through UI manager
         if (gameUI) {
             gameUI.showHomeScreen();
@@ -29,14 +32,30 @@
     // Initialize game when DOM is loaded
     async function initializeGame() {
         try {
+            // Show start animation first
+            showStartAnimation();
+            
+            // Wait for start animation to complete
+            await new Promise(resolve => {
+                startAnimation.start(() => {
+                    resolve();
+                });
+            });
+            
             // Show loading screen
             showLoadingScreen();
             
             // Simulate loading time for smooth experience
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             // Create game instance
             window.game = new SnakeGame();
+            
+            // Initialize AI snake after game is ready
+            window.game.aiSnake = new AISnake(window.game);
+            
+            // Activate enhanced features
+            activateEnhancements();
             
             // Initialize UI
             gameUI.init();
@@ -46,7 +65,7 @@
             gameStorage.applyTheme(settings.theme);
             gameAudio.setEnabled(settings.soundEnabled);
             
-            console.log('Snake Viper initialized successfully');
+            console.log('Snake Viper initialized successfully with AI enemy');
             
             // Hide loading screen and show start screen
             hideLoadingScreen();
@@ -54,6 +73,22 @@
         } catch (error) {
             console.error('Failed to initialize game:', error);
             showError('Failed to initialize Snake Viper. Please refresh the page.');
+        }
+    }
+    
+    // Show start animation screen
+    function showStartAnimation() {
+        const startAnimationScreen = document.getElementById('start-animation-screen');
+        if (startAnimationScreen) {
+            startAnimationScreen.style.display = 'flex';
+        }
+    }
+    
+    // Hide start animation screen
+    function hideStartAnimation() {
+        const startAnimationScreen = document.getElementById('start-animation-screen');
+        if (startAnimationScreen) {
+            startAnimationScreen.style.display = 'none';
         }
     }
     
