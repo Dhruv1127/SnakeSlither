@@ -4,6 +4,7 @@ class GameUI {
         this.elements = this.getElements();
         this.currentMode = 'classic';
         this.selectedMode = 'classic';
+        this.selectedLevel = 1;
         this.isSettingsOpen = false;
         this.isPaused = false;
         
@@ -38,6 +39,8 @@ class GameUI {
             
             // Mode buttons
             modeButtons: document.querySelectorAll('.mode-btn'),
+            levelDropdowns: document.querySelectorAll('.level-dropdown'),
+            levelSelects: document.querySelectorAll('.level-select'),
             
             // Settings
             speedSelect: document.getElementById('speed-select'),
@@ -61,6 +64,13 @@ class GameUI {
         this.elements.modeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 this.selectMode(btn.dataset.mode);
+            });
+        });
+
+        // Level selection
+        this.elements.levelDropdowns.forEach(dropdown => {
+            dropdown.addEventListener('change', (e) => {
+                this.selectedLevel = parseInt(e.target.value);
             });
         });
 
@@ -129,11 +139,26 @@ class GameUI {
     selectMode(mode) {
         this.selectedMode = mode;
         
+        // Hide all level selects first
+        this.elements.levelSelects.forEach(select => {
+            select.style.display = 'none';
+        });
+        
         // Update button selection
         this.elements.modeButtons.forEach(btn => {
             btn.classList.remove('selected');
             if (btn.dataset.mode === mode) {
                 btn.classList.add('selected');
+                // Show level select for this mode
+                const levelSelect = btn.querySelector('.level-select');
+                if (levelSelect) {
+                    levelSelect.style.display = 'block';
+                    // Set default level
+                    const dropdown = levelSelect.querySelector('.level-dropdown');
+                    if (dropdown) {
+                        this.selectedLevel = parseInt(dropdown.value);
+                    }
+                }
             }
         });
 
@@ -158,7 +183,7 @@ class GameUI {
     startGame() {
         this.hideScreen('start');
         if (window.game) {
-            window.game.start(this.currentMode);
+            window.game.start(this.currentMode, this.selectedLevel);
         }
     }
 

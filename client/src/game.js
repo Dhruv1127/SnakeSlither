@@ -199,20 +199,26 @@ class SnakeGame {
         }
     }
 
-    start(gameMode = 'classic') {
+    start(gameMode = 'classic', level = 1) {
         this.gameMode = gameMode;
+        this.gameLevel = level;
         this.isRunning = true;
         this.isPaused = false;
         this.score = 0;
         this.gameTime = 0;
         this.gameStartTime = Date.now();
         
+        // Apply level-specific settings
+        this.applyLevelSettings(gameMode, level);
+        
         // Initialize game based on mode
         this.initializeGame();
         
         // Start game timer for time attack mode
         if (gameMode === 'timeattack') {
-            this.timeLeft = 60;
+            // Level affects time limit
+            const timeLimits = { 1: 60, 2: 45, 3: 30 };
+            this.timeLeft = timeLimits[level] || 60;
             this.gameTimer = setInterval(() => {
                 this.timeLeft--;
                 gameUI.updateTimer(this.timeLeft);
@@ -228,7 +234,24 @@ class SnakeGame {
         // Start background music
         gameAudio.playBackgroundMusic();
         
-        console.log(`Game started in ${gameMode} mode`);
+        console.log(`Game started in ${gameMode} mode, level ${level}`);
+    }
+
+    applyLevelSettings(gameMode, level) {
+        // Apply level-specific settings for each game mode
+        if (gameMode === 'classic') {
+            const speedSettings = { 1: 2, 2: 3, 3: 4 };
+            this.gameSpeed = speedSettings[level] || 2;
+        } else if (gameMode === 'timeattack') {
+            const speedSettings = { 1: 3, 2: 4, 3: 5 };
+            this.gameSpeed = speedSettings[level] || 3;
+        } else if (gameMode === 'obstacle') {
+            const speedSettings = { 1: 2, 2: 2.5, 3: 3 };
+            this.gameSpeed = speedSettings[level] || 2;
+            
+            // Number of obstacles based on level
+            this.obstacleCount = level === 1 ? 3 : level === 2 ? 5 : 8;
+        }
     }
 
     initializeGame() {
@@ -285,7 +308,7 @@ class SnakeGame {
 
     generateObstacles() {
         this.obstacles = [];
-        const obstacleCount = 5; // Reduced number of obstacles
+        const obstacleCount = this.obstacleCount || 3; // Use level-based count
         
         for (let i = 0; i < obstacleCount; i++) {
             let obstacle;
@@ -391,11 +414,17 @@ class SnakeGame {
             return;
         }
         
-        // Check self collision (skip first few segments for smoother turning)
-        for (let i = 4; i < this.snake.length; i++) {
+        // Check self collision (skip more segments for better gameplay)
+        for (let i = 8; i < this.snake.length; i++) {
             const segment = this.snake[i];
             const distance = Math.sqrt((newHead.x - segment.x) ** 2 + (newHead.y - segment.y) ** 2);
-            if (distance < this.snakeSize * 1.5) {
+            if (distance < this.snakeSize * 1.2) { // Reduced collision threshold
+                console.log('Self collision:', {
+                    newHead: newHead,
+                    segment: segment,
+                    distance: distance,
+                    snakeLength: this.snake.length
+                });
                 this.gameOver();
                 return;
             }
@@ -506,7 +535,7 @@ class SnakeGame {
     }
 
     getSnakeLength() {
-        return 3 + Math.floor(this.score / 10); // Grow every 10 points
+        return 3 + Math.floor(this.score / 50); // Grow every 50 points instead of 10
     }
 
     eatFood() {

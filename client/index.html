@@ -68,14 +68,38 @@
                     <button class="mode-btn" data-mode="classic">
                         <h3>Classic</h3>
                         <p>Infinite play, high score focus</p>
+                        <div class="level-select" style="display: none;">
+                            <label>Level:</label>
+                            <select class="level-dropdown" data-mode="classic">
+                                <option value="1">Level 1 - Beginner</option>
+                                <option value="2">Level 2 - Medium</option>
+                                <option value="3">Level 3 - Expert</option>
+                            </select>
+                        </div>
                     </button>
                     <button class="mode-btn" data-mode="timeattack">
                         <h3>Time Attack</h3>
-                        <p>Score max points in 60 seconds</p>
+                        <p>Score max points in limited time</p>
+                        <div class="level-select" style="display: none;">
+                            <label>Level:</label>
+                            <select class="level-dropdown" data-mode="timeattack">
+                                <option value="1">Level 1 - 60 seconds</option>
+                                <option value="2">Level 2 - 45 seconds</option>
+                                <option value="3">Level 3 - 30 seconds</option>
+                            </select>
+                        </div>
                     </button>
                     <button class="mode-btn" data-mode="obstacle">
                         <h3>Obstacle Mode</h3>
-                        <p>Random walls appear</p>
+                        <p>Navigate through barriers</p>
+                        <div class="level-select" style="display: none;">
+                            <label>Level:</label>
+                            <select class="level-dropdown" data-mode="obstacle">
+                                <option value="1">Level 1 - Few obstacles</option>
+                                <option value="2">Level 2 - Medium obstacles</option>
+                                <option value="3">Level 3 - Many obstacles</option>
+                            </select>
+                        </div>
                     </button>
                 </div>
                 <div class="start-controls">
