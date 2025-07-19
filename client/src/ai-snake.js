@@ -226,11 +226,11 @@ class AISnake {
     checkCollisions() {
         // Snake collision disabled - only power balls can end the game now
         // Goku and Vegeta can pass through each other safely
-        return;
         
-        // Check if AI eats food
-        if (this.game.food) {
-            const foodDistance = this.getDistance(aiHead, this.game.food);
+        // Only check for food collision
+        if (this.game.food && this.segments.length > 0) {
+            const head = this.segments[0];
+            const foodDistance = this.getDistance(head, this.game.food);
             if (foodDistance < this.segmentSize + this.game.foodSize) {
                 this.eatFood();
             }
