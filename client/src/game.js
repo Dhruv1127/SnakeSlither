@@ -858,8 +858,22 @@ class SnakeGame {
         console.log('About to show game over screen with data:', gameData);
         if (window.gameUI && window.gameUI.showGameOver) { 
             window.gameUI.showGameOver(gameData); 
+        } else if (gameUI && gameUI.showGameOver) {
+            gameUI.showGameOver(gameData);
         } else {
-            console.error('gameUI.showGameOver not available!');
+            console.error('gameUI.showGameOver not available! Trying fallback...');
+            // Fallback: Force show game over screen directly
+            const gameOverScreen = document.getElementById('game-over-screen');
+            const gameOverTitle = document.getElementById('game-over-title');
+            const finalScore = document.getElementById('final-score');
+            
+            if (gameOverScreen && gameOverTitle && finalScore) {
+                gameOverScreen.style.display = 'flex';
+                gameOverScreen.style.zIndex = '1000';
+                gameOverTitle.textContent = gameData.reason.includes('Vegeta') ? 'Collision with Vegeta!' : 'Hit the Wall!';
+                finalScore.textContent = gameData.score || 0;
+                console.log('Game over screen shown via fallback method');
+            }
         }
     }
 
@@ -1121,8 +1135,22 @@ class SnakeGame {
         console.log('About to show game over screen with data:', gameData);
         if (window.gameUI && window.gameUI.showGameOver) { 
             window.gameUI.showGameOver(gameData); 
+        } else if (gameUI && gameUI.showGameOver) {
+            gameUI.showGameOver(gameData);
         } else {
-            console.error('gameUI.showGameOver not available!');
+            console.error('gameUI.showGameOver not available! Trying fallback...');
+            // Fallback: Force show game over screen directly
+            const gameOverScreen = document.getElementById('game-over-screen');
+            const gameOverTitle = document.getElementById('game-over-title');
+            const finalScore = document.getElementById('final-score');
+            
+            if (gameOverScreen && gameOverTitle && finalScore) {
+                gameOverScreen.style.display = 'flex';
+                gameOverScreen.style.zIndex = '1000';
+                gameOverTitle.textContent = gameData.reason.includes('Vegeta') ? 'Collision with Vegeta!' : 'Hit the Wall!';
+                finalScore.textContent = gameData.score || 0;
+                console.log('Game over screen shown via fallback method');
+            }
         }
     }
 

@@ -535,3 +535,6 @@ class GameUI {
 
 // Create global UI instance
 const gameUI = new GameUI();
+
+// Make gameUI available globally
+window.gameUI = gameUI;
