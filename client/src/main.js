@@ -2,11 +2,38 @@
 (function() {
     'use strict';
     
-    console.log('Enhanced Snake Game starting...');
+    console.log('Snake Viper starting...');
     
+    // Show loading screen initially
+    function showLoadingScreen() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'flex';
+        }
+    }
+
+    // Hide loading screen and show start screen
+    function hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const startScreen = document.getElementById('start-screen');
+        
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+        if (startScreen) {
+            startScreen.style.display = 'flex';
+        }
+    }
+
     // Initialize game when DOM is loaded
-    function initializeGame() {
+    async function initializeGame() {
         try {
+            // Show loading screen
+            showLoadingScreen();
+            
+            // Simulate loading time for smooth experience
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             // Create game instance
             window.game = new SnakeGame();
             
@@ -18,14 +45,14 @@
             gameStorage.applyTheme(settings.theme);
             gameAudio.setEnabled(settings.soundEnabled);
             
-            console.log('Game initialized successfully');
+            console.log('Snake Viper initialized successfully');
             
-            // Show start screen
-            gameUI.showScreen('start');
+            // Hide loading screen and show start screen
+            hideLoadingScreen();
             
         } catch (error) {
             console.error('Failed to initialize game:', error);
-            showError('Failed to initialize game. Please refresh the page.');
+            showError('Failed to initialize Snake Viper. Please refresh the page.');
         }
     }
     
@@ -170,5 +197,5 @@
         };
     }
     
-    console.log('Enhanced Snake Game loaded successfully!');
+    console.log('Snake Viper loaded successfully!');
 })();
