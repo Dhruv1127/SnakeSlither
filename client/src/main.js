@@ -12,16 +12,17 @@
         }
     }
 
-    // Hide loading screen and show start screen
+    // Hide loading screen and show home screen
     function hideLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
-        const startScreen = document.getElementById('start-screen');
         
         if (loadingScreen) {
             loadingScreen.style.display = 'none';
         }
-        if (startScreen) {
-            startScreen.style.display = 'flex';
+        
+        // Show home screen through UI manager
+        if (gameUI) {
+            gameUI.showHomeScreen();
         }
     }
 

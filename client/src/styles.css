@@ -632,3 +632,171 @@ body {
     outline: none;
     border-color: #ff6b35;
 }
+
+/* Home screen styles */
+.game-subtitle {
+    font-size: 1.1em;
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    font-style: italic;
+}
+
+.home-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.large-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 15px 30px;
+    font-size: 1.1em;
+    min-height: 60px;
+    transition: all 0.3s ease;
+}
+
+.large-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.btn-icon {
+    font-size: 1.3em;
+}
+
+.game-info {
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.game-info p {
+    margin: 8px 0;
+}
+
+/* Navigation buttons */
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.navigation-buttons button {
+    flex: 1;
+    padding: 12px 20px;
+}
+
+/* Level buttons */
+.level-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.level-btn {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.level-btn:hover {
+    border-color: var(--accent-color);
+    background: rgba(255, 107, 53, 0.1);
+    transform: translateY(-2px);
+}
+
+.level-btn.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 107, 53, 0.2);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+}
+
+.level-btn h3 {
+    margin: 0 0 8px 0;
+    color: var(--accent-color);
+    font-size: 1.2em;
+}
+
+.level-btn p {
+    margin: 0 0 12px 0;
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+
+.level-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.difficulty-indicator {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.difficulty-indicator.easy {
+    color: #4CAF50;
+}
+
+.difficulty-indicator.medium {
+    color: #FF9800;
+}
+
+.difficulty-indicator.hard {
+    color: #F44336;
+}
+
+/* Mode buttons updates */
+.mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.mode-btn {
+    text-align: left;
+    padding: 20px;
+    min-height: auto;
+}
+
+.mode-btn.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 107, 53, 0.2);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive design for new screens */
+@media (max-width: 768px) {
+    .large-btn {
+        padding: 12px 20px;
+        font-size: 1em;
+        min-height: 50px;
+    }
+    
+    .navigation-buttons {
+        flex-direction: column;
+    }
+    
+    .level-buttons,
+    .mode-buttons {
+        gap: 12px;
+    }
+    
+    .level-btn,
+    .mode-btn {
+        padding: 15px;
+    }
+}

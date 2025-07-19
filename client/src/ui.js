@@ -15,7 +15,9 @@ class GameUI {
     getElements() {
         return {
             // Screens
-            startScreen: document.getElementById('start-screen'),
+            homeScreen: document.getElementById('home-screen'),
+            modeScreen: document.getElementById('mode-screen'),
+            levelScreen: document.getElementById('level-screen'),
             gameOverScreen: document.getElementById('game-over-screen'),
             pauseScreen: document.getElementById('pause-screen'),
             settingsModal: document.getElementById('settings-modal'),
@@ -27,6 +29,12 @@ class GameUI {
             timer: document.getElementById('timer'),
             
             // Buttons
+            playBtn: document.getElementById('play-btn'),
+            quitBtn: document.getElementById('quit-btn'),
+            settingsHomeBtn: document.getElementById('settings-home-btn'),
+            backToHomeBtn: document.getElementById('back-to-home-btn'),
+            continueToLevelsBtn: document.getElementById('continue-to-levels-btn'),
+            backToModesBtn: document.getElementById('back-to-modes-btn'),
             startGameBtn: document.getElementById('start-game-btn'),
             restartBtn: document.getElementById('restart-btn'),
             menuBtn: document.getElementById('menu-btn'),
@@ -37,10 +45,10 @@ class GameUI {
             soundBtn: document.getElementById('sound-btn'),
             resetHighScoreBtn: document.getElementById('reset-high-score-btn'),
             
-            // Mode buttons
+            // Mode and level buttons
             modeButtons: document.querySelectorAll('.mode-btn'),
-            levelDropdowns: document.querySelectorAll('.level-dropdown'),
-            levelSelects: document.querySelectorAll('.level-select'),
+            levelButtons: document.querySelectorAll('.level-btn'),
+            levelScreenTitle: document.getElementById('level-screen-title'),
             
             // Settings
             speedSelect: document.getElementById('speed-select'),
@@ -60,6 +68,16 @@ class GameUI {
     }
 
     bindEvents() {
+        // Home screen buttons
+        this.elements.playBtn.addEventListener('click', () => this.showModeScreen());
+        this.elements.quitBtn.addEventListener('click', () => this.quitGame());
+        this.elements.settingsHomeBtn.addEventListener('click', () => this.openSettings());
+
+        // Navigation buttons
+        this.elements.backToHomeBtn.addEventListener('click', () => this.showHomeScreen());
+        this.elements.continueToLevelsBtn.addEventListener('click', () => this.showLevelScreen());
+        this.elements.backToModesBtn.addEventListener('click', () => this.showModeScreen());
+
         // Mode selection
         this.elements.modeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -68,16 +86,16 @@ class GameUI {
         });
 
         // Level selection
-        this.elements.levelDropdowns.forEach(dropdown => {
-            dropdown.addEventListener('change', (e) => {
-                this.selectedLevel = parseInt(e.target.value);
+        this.elements.levelButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.selectLevel(parseInt(btn.dataset.level));
             });
         });
 
         // Game control buttons
         this.elements.startGameBtn.addEventListener('click', () => this.startGame());
         this.elements.restartBtn.addEventListener('click', () => this.restartGame());
-        this.elements.menuBtn.addEventListener('click', () => this.showMainMenu());
+        this.elements.menuBtn.addEventListener('click', () => this.showHomeScreen());
         this.elements.pauseBtn.addEventListener('click', () => this.togglePause());
         this.elements.resumeBtn.addEventListener('click', () => this.resumeGame());
 
@@ -139,28 +157,16 @@ class GameUI {
     selectMode(mode) {
         this.selectedMode = mode;
         
-        // Hide all level selects first
-        this.elements.levelSelects.forEach(select => {
-            select.style.display = 'none';
-        });
-        
         // Update button selection
         this.elements.modeButtons.forEach(btn => {
             btn.classList.remove('selected');
             if (btn.dataset.mode === mode) {
                 btn.classList.add('selected');
-                // Show level select for this mode
-                const levelSelect = btn.querySelector('.level-select');
-                if (levelSelect) {
-                    levelSelect.style.display = 'block';
-                    // Set default level
-                    const dropdown = levelSelect.querySelector('.level-dropdown');
-                    if (dropdown) {
-                        this.selectedLevel = parseInt(dropdown.value);
-                    }
-                }
             }
         });
+
+        // Enable continue button
+        this.elements.continueToLevelsBtn.disabled = false;
 
         // Update mode display
         const modeNames = {
@@ -180,10 +186,94 @@ class GameUI {
         }
     }
 
+    selectLevel(level) {
+        this.selectedLevel = level;
+        
+        // Update button selection
+        this.elements.levelButtons.forEach(btn => {
+            btn.classList.remove('selected');
+            if (parseInt(btn.dataset.level) === level) {
+                btn.classList.add('selected');
+            }
+        });
+
+        // Enable start game button
+        this.elements.startGameBtn.disabled = false;
+    }
+
+    showHomeScreen() {
+        this.hideAllScreens();
+        this.elements.homeScreen.style.display = 'flex';
+    }
+
+    showModeScreen() {
+        this.hideAllScreens();
+        this.elements.modeScreen.style.display = 'flex';
+        // Reset selections
+        this.elements.continueToLevelsBtn.disabled = true;
+        this.elements.modeButtons.forEach(btn => btn.classList.remove('selected'));
+    }
+
+    showLevelScreen() {
+        if (!this.selectedMode) return;
+        
+        this.hideAllScreens();
+        this.elements.levelScreen.style.display = 'flex';
+        
+        // Update level descriptions based on mode
+        this.updateLevelDescriptions();
+        
+        // Reset level selection
+        this.elements.startGameBtn.disabled = true;
+        this.elements.levelButtons.forEach(btn => btn.classList.remove('selected'));
+    }
+
+    updateLevelDescriptions() {
+        const descriptions = {
+            classic: {
+                1: 'Slow speed, easy gameplay',
+                2: 'Medium speed, balanced',
+                3: 'Fast speed, challenging'
+            },
+            timeattack: {
+                1: '60 seconds to score',
+                2: '45 seconds challenge',
+                3: '30 seconds sprint'
+            },
+            obstacle: {
+                1: 'Few obstacles, easier',
+                2: 'More obstacles',
+                3: 'Many obstacles, expert'
+            }
+        };
+
+        const modeDescriptions = descriptions[this.selectedMode] || descriptions.classic;
+        
+        document.getElementById('level-1-desc').textContent = modeDescriptions[1];
+        document.getElementById('level-2-desc').textContent = modeDescriptions[2];
+        document.getElementById('level-3-desc').textContent = modeDescriptions[3];
+        
+        this.elements.levelScreenTitle.textContent = `🐍 ${this.selectedMode.charAt(0).toUpperCase() + this.selectedMode.slice(1)} - Choose Level`;
+    }
+
+    hideAllScreens() {
+        this.elements.homeScreen.style.display = 'none';
+        this.elements.modeScreen.style.display = 'none';
+        this.elements.levelScreen.style.display = 'none';
+        this.elements.gameOverScreen.style.display = 'none';
+        this.elements.pauseScreen.style.display = 'none';
+    }
+
+    quitGame() {
+        if (confirm('Are you sure you want to quit Snake Viper?')) {
+            window.close();
+        }
+    }
+
     startGame() {
-        this.hideScreen('start');
-        if (window.game) {
-            window.game.start(this.currentMode, this.selectedLevel);
+        this.hideAllScreens();
+        if (window.game && this.selectedMode && this.selectedLevel) {
+            window.game.start(this.selectedMode, this.selectedLevel);
         }
     }
 
@@ -195,8 +285,8 @@ class GameUI {
     }
 
     showMainMenu() {
-        this.hideScreen('gameOver');
-        this.showScreen('start');
+        this.hideAllScreens();
+        this.showHomeScreen();
         if (window.game) {
             window.game.reset();
         }
@@ -232,7 +322,9 @@ class GameUI {
 
     showScreen(screen) {
         const screens = {
-            start: this.elements.startScreen,
+            home: this.elements.homeScreen,
+            mode: this.elements.modeScreen,
+            level: this.elements.levelScreen,
             gameOver: this.elements.gameOverScreen,
             pause: this.elements.pauseScreen
         };
@@ -244,7 +336,9 @@ class GameUI {
 
     hideScreen(screen) {
         const screens = {
-            start: this.elements.startScreen,
+            home: this.elements.homeScreen,
+            mode: this.elements.modeScreen,
+            level: this.elements.levelScreen,
             gameOver: this.elements.gameOverScreen,
             pause: this.elements.pauseScreen
         };
@@ -391,7 +485,7 @@ class GameUI {
 
     // Initialize UI
     init() {
-        this.selectMode('classic');
+        this.showHomeScreen();
         this.updateHighScore(gameStorage.getHighScore());
         this.updateMobileControls();
         
