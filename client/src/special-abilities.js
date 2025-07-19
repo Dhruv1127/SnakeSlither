@@ -257,7 +257,7 @@ class SpecialAbilities {
     handlePowerBallHit(powerBall, target) {
         // Create explosion effect
         if (this.game.particles) {
-            this.game.particles.createExplosionEffect(target.x, target.y, '#00f5ff');
+            this.game.particles.createFoodExplosion(target.x, target.y, '#00f5ff');
         }
         
         // Play clash sound
@@ -449,7 +449,7 @@ class SpecialAbilities {
                 
                 // Create explosion effect
                 if (this.game.particles) {
-                    this.game.particles.createExplosionEffect(gokuHead.x, gokuHead.y, '#ff0000');
+                    this.game.particles.createFoodExplosion(gokuHead.x, gokuHead.y, '#ff0000');
                 }
                 
                 // Play explosion sound
@@ -487,7 +487,7 @@ class SpecialAbilities {
                 
                 // Create explosion effect
                 if (this.game.particles) {
-                    this.game.particles.createExplosionEffect(vegetaHead.x, vegetaHead.y, '#00ff00');
+                    this.game.particles.createFoodExplosion(vegetaHead.x, vegetaHead.y, '#00ff00');
                 }
                 
                 // Play hit sound
