@@ -99,6 +99,12 @@ class SpecialAbilities {
             return;
         }
         
+        // Check if snake head exists
+        if (!this.game.snake || this.game.snake.length === 0) {
+            console.log('Cannot launch power ball - no snake head');
+            return;
+        }
+        
         const head = this.game.snake[0];
         powerBall.x = head.x;
         powerBall.y = head.y;
@@ -158,8 +164,8 @@ class SpecialAbilities {
             }
             
             // Check collision with Vegeta AI
-            if (this.game.aiSnake && this.game.aiSnake.snake.length > 0) {
-                const vegetaHead = this.game.aiSnake.snake[0];
+            if (this.game.aiSnake && this.game.aiSnake.segments && this.game.aiSnake.segments.length > 0) {
+                const vegetaHead = this.game.aiSnake.segments[0];
                 const distance = Math.sqrt(
                     Math.pow(powerBall.x - vegetaHead.x, 2) + 
                     Math.pow(powerBall.y - vegetaHead.y, 2)
@@ -218,8 +224,8 @@ class SpecialAbilities {
         const vegetaPowerBall = this.vegetaAbilities.powerBall;
         
         // Check Goku's power ball collision with Vegeta
-        if (gokuPowerBall.active && this.game.aiSnake && this.game.aiSnake.snake.length > 0) {
-            const vegetaHead = this.game.aiSnake.snake[0];
+        if (gokuPowerBall.active && this.game.aiSnake && this.game.aiSnake.segments && this.game.aiSnake.segments.length > 0) {
+            const vegetaHead = this.game.aiSnake.segments[0];
             const distance = Math.sqrt(
                 (gokuPowerBall.x - vegetaHead.x) ** 2 + 
                 (gokuPowerBall.y - vegetaHead.y) ** 2
@@ -410,15 +416,15 @@ class SpecialAbilities {
             
             // Vegeta responds after short delay
             setTimeout(() => {
-                if (this.game.aiSnake && this.game.aiSnake.launchPowerBall) {
+                if (this.game.aiSnake && this.game.aiSnake.launchPowerBall && this.game.snake && this.game.snake.length > 0) {
                     console.log('Vegeta responds with power ball attack!');
-                    this.game.aiSnake.launchPowerBall();
+                    this.game.aiSnake.launchPowerBall(this.game.snake[0]);
                 }
             }, 800); // 0.8 second delay
         } else {
             console.log('Auto Power Ball Exchange: Vegeta attacks first!');
-            if (this.game.aiSnake && this.game.aiSnake.launchPowerBall) {
-                this.game.aiSnake.launchPowerBall();
+            if (this.game.aiSnake && this.game.aiSnake.launchPowerBall && this.game.snake && this.game.snake.length > 0) {
+                this.game.aiSnake.launchPowerBall(this.game.snake[0]);
             }
             
             // Goku responds after short delay
@@ -443,8 +449,8 @@ class SpecialAbilities {
         let targetX = this.game.canvasSize / 2;
         let targetY = this.game.canvasSize / 2;
         
-        if (this.game.aiSnake && this.game.aiSnake.snake.length > 0) {
-            const vegetaHead = this.game.aiSnake.snake[0];
+        if (this.game.aiSnake && this.game.aiSnake.segments && this.game.aiSnake.segments.length > 0) {
+            const vegetaHead = this.game.aiSnake.segments[0];
             targetX = vegetaHead.x;
             targetY = vegetaHead.y;
         }

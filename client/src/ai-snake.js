@@ -92,6 +92,7 @@ class AISnake {
         if (!head) return;
         
         // Get player position
+        if (!this.game.snake || this.game.snake.length === 0) return;
         const playerHead = this.game.snake[0];
         if (!playerHead) return;
         
@@ -222,10 +223,12 @@ class AISnake {
     }
     
     checkCollisions() {
-        if (this.segments.length === 0 || this.game.snake.length === 0) return;
+        if (this.segments.length === 0 || !this.game.snake || this.game.snake.length === 0) return;
         
         const aiHead = this.segments[0];
         const playerHead = this.game.snake[0];
+        
+        if (!aiHead || !playerHead) return;
         
         // Check collision with player
         const distance = this.getDistance(aiHead, playerHead);
@@ -391,6 +394,8 @@ class AISnake {
     // Smart Power Ball System for Vegeta AI
     checkSmartPowerBallUsage() {
         const now = Date.now();
+        if (!this.game.snake || this.game.snake.length === 0 || this.segments.length === 0) return;
+        
         const playerHead = this.game.snake[0];
         if (!playerHead || !this.segments[0]) return;
         
