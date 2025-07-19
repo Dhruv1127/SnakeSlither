@@ -47,6 +47,16 @@ class SpecialAbilities {
                 maxCooldown: 240 // 4 seconds
             }
         };
+        
+        // Initialize Ultra Instinct system
+        this.ultraInstinctTimer = Date.now();
+        this.ultraInstinctInterval = 5000; // 5 seconds
+        this.ultraInstinctActive = false;
+        this.ultraInstinctDuration = 2000; // 2 seconds duration
+        
+        // Initialize automatic power ball exchange system
+        this.autoPowerBallTimer = Date.now();
+        this.autoPowerBallInterval = 5000; // 5 seconds
     }
     
     // Goku Special Abilities
@@ -267,6 +277,9 @@ class SpecialAbilities {
             
             ctx.restore();
         }
+        
+        // Render Ultra Instinct effect
+        this.renderUltraInstinctEffect(ctx);
     }
     
     // Color modification methods
@@ -294,7 +307,163 @@ class SpecialAbilities {
             multiplier *= this.gokuAbilities.speedBoost.multiplier;
         }
         
+        // Ultra Instinct provides even more speed
+        if (this.ultraInstinctActive) {
+            multiplier *= 3.5; // Ultra Instinct speed multiplier
+        }
+        
         return multiplier;
+    }
+    
+    // Ultra Instinct System - Automatic every 5 seconds
+    updateUltraInstinct() {
+        const currentTime = Date.now();
+        
+        // Check if it's time for Ultra Instinct activation
+        if (currentTime - this.ultraInstinctTimer >= this.ultraInstinctInterval) {
+            this.activateUltraInstinct();
+            this.ultraInstinctTimer = currentTime;
+        }
+        
+        // Deactivate Ultra Instinct after duration
+        if (this.ultraInstinctActive && currentTime - this.ultraInstinctTimer >= this.ultraInstinctDuration) {
+            this.ultraInstinctActive = false;
+            console.log('Goku Ultra Instinct deactivated');
+        }
+    }
+    
+    activateUltraInstinct() {
+        this.ultraInstinctActive = true;
+        console.log('Goku activates Ultra Instinct! Incredible speed boost!');
+        
+        // Play special sound effect
+        if (window.gameAudio) {
+            window.gameAudio.playSound('speedboost');
+        }
+        
+        // Notify AI that Goku is using special abilities
+        if (this.game.aiSnake && this.game.aiSnake.onGokuDodge) {
+            this.game.aiSnake.onGokuDodge();
+        }
+    }
+    
+    // Automatic Power Ball Exchange System - Every 5 seconds
+    updateAutoPowerBalls() {
+        const currentTime = Date.now();
+        
+        // Check if it's time for automatic power ball exchange
+        if (currentTime - this.autoPowerBallTimer >= this.autoPowerBallInterval) {
+            this.triggerPowerBallExchange();
+            this.autoPowerBallTimer = currentTime;
+        }
+    }
+    
+    triggerPowerBallExchange() {
+        const goku = this.gokuAbilities.powerBall;
+        const vegeta = this.vegetaAbilities.powerBall;
+        
+        // Don't trigger if either is already active
+        if (goku.active || vegeta.active || goku.cooldown > 0 || vegeta.cooldown > 0) {
+            return;
+        }
+        
+        // Randomly choose who attacks first (60% Goku, 40% Vegeta for balance)
+        const gokuAttacksFirst = Math.random() < 0.6;
+        
+        if (gokuAttacksFirst) {
+            console.log('Auto Power Ball Exchange: Goku attacks first!');
+            this.autoLaunchGokuPowerBall();
+            
+            // Vegeta responds after short delay
+            setTimeout(() => {
+                if (this.game.aiSnake && this.game.aiSnake.launchPowerBall) {
+                    console.log('Vegeta responds with power ball attack!');
+                    this.game.aiSnake.launchPowerBall();
+                }
+            }, 800); // 0.8 second delay
+        } else {
+            console.log('Auto Power Ball Exchange: Vegeta attacks first!');
+            if (this.game.aiSnake && this.game.aiSnake.launchPowerBall) {
+                this.game.aiSnake.launchPowerBall();
+            }
+            
+            // Goku responds after short delay
+            setTimeout(() => {
+                console.log('Goku responds with power ball attack!');
+                this.autoLaunchGokuPowerBall();
+            }, 600); // 0.6 second delay
+        }
+    }
+    
+    autoLaunchGokuPowerBall() {
+        const powerBall = this.gokuAbilities.powerBall;
+        
+        if (powerBall.cooldown > 0 || !this.game.snake || this.game.snake.length === 0) {
+            return;
+        }
+        
+        // Get Goku's head position
+        const head = this.game.snake[0];
+        
+        // Target Vegeta if available
+        let targetX = this.game.canvasSize / 2;
+        let targetY = this.game.canvasSize / 2;
+        
+        if (this.game.aiSnake && this.game.aiSnake.snake.length > 0) {
+            const vegetaHead = this.game.aiSnake.snake[0];
+            targetX = vegetaHead.x;
+            targetY = vegetaHead.y;
+        }
+        
+        // Calculate direction to target
+        const dx = targetX - head.x;
+        const dy = targetY - head.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            powerBall.x = head.x;
+            powerBall.y = head.y;
+            powerBall.vx = (dx / distance) * 12; // Fast speed
+            powerBall.vy = (dy / distance) * 12;
+            powerBall.active = true;
+            powerBall.energy = 100;
+            powerBall.cooldown = powerBall.maxCooldown;
+            powerBall.trail = [];
+            
+            // Play power ball sound
+            if (window.gameAudio) {
+                window.gameAudio.playSound('powerball');
+            }
+        }
+    }
+    
+    // Enhanced render method for Ultra Instinct effects
+    renderUltraInstinctEffect(ctx) {
+        if (this.ultraInstinctActive && this.game.snake.length > 0) {
+            const head = this.game.snake[0];
+            ctx.save();
+            
+            // Ultra Instinct silver/white aura with rapid pulsing
+            const pulse = Math.sin(Date.now() * 0.05) * 0.3 + 0.7;
+            ctx.globalAlpha = pulse * 0.4;
+            ctx.fillStyle = '#e0e0e0'; // Silver/white
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 35;
+            ctx.beginPath();
+            ctx.arc(head.x, head.y, this.game.snakeSize * 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner bright core
+            ctx.globalAlpha = pulse * 0.6;
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(head.x, head.y, this.game.snakeSize * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
     }
 }
 

@@ -470,6 +470,9 @@ class SnakeGame {
         if (this.specialAbilities) {
             this.specialAbilities.updateGokuAbilities(deltaTime);
             this.specialAbilities.updateVegetaAbilities(deltaTime);
+            this.specialAbilities.updateCollisions();
+            this.specialAbilities.updateUltraInstinct();
+            this.specialAbilities.updateAutoPowerBalls();
         }
         
         // Smooth direction interpolation
