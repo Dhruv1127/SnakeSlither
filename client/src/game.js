@@ -456,55 +456,25 @@ class SnakeGame {
             y: head.y + Math.sin(this.direction) * moveDistance
         };
         
-        // Check wall collision - add some debug logging
-        if (newHead.x < this.snakeSize || newHead.x > this.canvasSize - this.snakeSize || 
-            newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
-            console.log('Wall collision:', {
-                newHead: newHead,
-                canvasSize: this.canvasSize,
-                snakeSize: this.snakeSize,
-                boundaries: {
-                    minX: this.snakeSize,
-                    maxX: this.canvasSize - this.snakeSize,
-                    minY: this.snakeSize,
-                    maxY: this.canvasSize - this.snakeSize
-                }
-            });
-            this.particles.createWallHitEffect(newHead.x, newHead.y);
-            this.gameOver();
-            return;
+        // Wall collision disabled - only power balls can end the game
+        // Wrap around boundaries instead of game over
+        if (newHead.x < this.snakeSize) {
+            newHead.x = this.canvasSize - this.snakeSize;
+        } else if (newHead.x > this.canvasSize - this.snakeSize) {
+            newHead.x = this.snakeSize;
         }
         
-        // Check self collision (skip more segments for better gameplay)
-        for (let i = 8; i < this.snake.length; i++) {
-            const segment = this.snake[i];
-            const distance = Math.sqrt((newHead.x - segment.x) ** 2 + (newHead.y - segment.y) ** 2);
-            if (distance < this.snakeSize * 1.2) { // Reduced collision threshold
-                console.log('Self collision:', {
-                    newHead: newHead,
-                    segment: segment,
-                    distance: distance,
-                    snakeLength: this.snake.length
-                });
-                this.gameOver();
-                return;
-            }
+        if (newHead.y < this.snakeSize) {
+            newHead.y = this.canvasSize - this.snakeSize;
+        } else if (newHead.y > this.canvasSize - this.snakeSize) {
+            newHead.y = this.snakeSize;
         }
         
-        // Check obstacle collision - add debug logging
-        for (let obstacle of this.obstacles) {
-            const distance = Math.sqrt((newHead.x - obstacle.x) ** 2 + (newHead.y - obstacle.y) ** 2);
-            if (distance < this.snakeSize + obstacle.size) {
-                console.log('Obstacle collision:', {
-                    newHead: newHead,
-                    obstacle: obstacle,
-                    distance: distance,
-                    collisionThreshold: this.snakeSize + obstacle.size
-                });
-                this.gameOver();
-                return;
-            }
-        }
+        // Self collision disabled - only power balls can end the game
+        // Goku can pass through his own tail safely
+        
+        // Obstacle collision disabled - only power balls can end the game
+        // Goku can pass through obstacles safely
         
         // Update snake body following head
         this.updateSnakeBody(newHead);
