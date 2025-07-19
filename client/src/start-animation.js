@@ -41,17 +41,19 @@ class StartAnimation {
             screenShake: 0
         };
         
-        // Laser saber - Glowing neon blue/green
+        // Laser saber - Glowing neon blue/green (random direction)
         this.laserSaber = {
-            x: this.canvas.width + 100,
-            y: this.canvas.height / 2,
+            x: 0,
+            y: 0,
             speed: 8,
             angle: 0,
             length: 200,
-            active: true,
+            active: false,
             color: '#00ffff', // Cyan
             coreColor: '#00ff88', // Neon green
-            glowColor: '#4dd0e1' // Light cyan glow
+            glowColor: '#4dd0e1', // Light cyan glow
+            direction: { x: 0, y: 0 }, // Movement direction
+            rotationSpeed: 0.2
         };
         
         // Initialize snake segments after other properties are set
@@ -86,8 +88,7 @@ class StartAnimation {
             this.controller.y = this.canvas.height / 2;
         }
         if (this.laserSaber) {
-            this.laserSaber.x = this.canvas.width + 100;
-            this.laserSaber.y = this.canvas.height / 2;
+            this.laserSaber.active = false; // Will be activated when needed
         }
     }
     
@@ -151,31 +152,43 @@ class StartAnimation {
         if (this.snake.headX >= this.canvas.width * 0.3) {
             this.phase = 'dodge';
             this.snake.speed = 3;
-            // Start laser saber attack
-            this.laserSaber.x = this.canvas.width + 100;
-            this.laserSaber.active = true;
+            // Start laser saber attack from random direction
+            this.initializeRandomSaber();
         }
     }
     
     updateDodgePhase() {
-        // Snake dodges the laser saber
-        const saberDistance = Math.abs(this.snake.headX - this.laserSaber.x);
-        
-        if (saberDistance < 150 && this.laserSaber.active) {
-            // Dodge by moving up and down
-            const dodgeAmplitude = 80;
-            this.snake.headY = this.canvas.height / 2 + Math.sin(this.time * 10) * dodgeAmplitude;
-        } else {
-            // Return to center position
-            this.snake.headY += (this.canvas.height / 2 - this.snake.headY) * 0.1;
+        if (this.laserSaber.active) {
+            // Calculate distance to saber
+            const dx = this.snake.headX - this.laserSaber.x;
+            const dy = this.snake.headY - this.laserSaber.y;
+            const saberDistance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (saberDistance < 150) {
+                // Dodge by moving away from saber
+                const dodgeAmplitude = 100;
+                const dodgeAngle = Math.atan2(dy, dx); // Angle away from saber
+                this.snake.headY += Math.sin(dodgeAngle) * dodgeAmplitude * 0.02;
+                this.snake.headX += Math.cos(dodgeAngle) * dodgeAmplitude * 0.02;
+                
+                // Add dramatic evasive movement
+                this.snake.headY += Math.sin(this.time * 15) * 60;
+            } else {
+                // Return to center position gradually
+                this.snake.headY += (this.canvas.height / 2 - this.snake.headY) * 0.05;
+            }
         }
         
         // Continue moving right while dodging
         this.snake.headX += this.snake.speed;
         this.updateSnakeBody();
         
+        // Keep snake within bounds during dodge
+        this.snake.headX = Math.max(50, Math.min(this.canvas.width - 200, this.snake.headX));
+        this.snake.headY = Math.max(50, Math.min(this.canvas.height - 50, this.snake.headY));
+        
         // Transition to approach when laser saber passes
-        if (this.laserSaber.x < -200) {
+        if (!this.laserSaber.active) {
             this.phase = 'approach';
             this.snake.speed = 2;
             this.snake.targetY = this.controller.y;
@@ -275,13 +288,52 @@ class StartAnimation {
         });
     }
     
+    initializeRandomSaber() {
+        // Random direction: 0=right, 1=top, 2=left, 3=bottom
+        const directions = [
+            { // From right
+                x: this.canvas.width + 100,
+                y: Math.random() * this.canvas.height * 0.6 + this.canvas.height * 0.2,
+                dx: -1, dy: 0
+            },
+            { // From top
+                x: Math.random() * this.canvas.width * 0.6 + this.canvas.width * 0.2,
+                y: -100,
+                dx: 0, dy: 1
+            },
+            { // From left
+                x: -100,
+                y: Math.random() * this.canvas.height * 0.6 + this.canvas.height * 0.2,
+                dx: 1, dy: 0
+            },
+            { // From bottom
+                x: Math.random() * this.canvas.width * 0.6 + this.canvas.width * 0.2,
+                y: this.canvas.height + 100,
+                dx: 0, dy: -1
+            }
+        ];
+        
+        const direction = directions[Math.floor(Math.random() * directions.length)];
+        
+        this.laserSaber.x = direction.x;
+        this.laserSaber.y = direction.y;
+        this.laserSaber.direction.x = direction.dx;
+        this.laserSaber.direction.y = direction.dy;
+        this.laserSaber.active = true;
+        this.laserSaber.angle = Math.atan2(direction.dy, direction.dx);
+    }
+    
     updateLaserSaber() {
         if (this.laserSaber.active) {
-            this.laserSaber.x -= this.laserSaber.speed;
-            this.laserSaber.angle += 0.2;
+            // Move in the specified direction
+            this.laserSaber.x += this.laserSaber.direction.x * this.laserSaber.speed;
+            this.laserSaber.y += this.laserSaber.direction.y * this.laserSaber.speed;
+            this.laserSaber.angle += this.laserSaber.rotationSpeed;
             
             // Deactivate when off screen
-            if (this.laserSaber.x < -300) {
+            const margin = 300;
+            if (this.laserSaber.x < -margin || this.laserSaber.x > this.canvas.width + margin ||
+                this.laserSaber.y < -margin || this.laserSaber.y > this.canvas.height + margin) {
                 this.laserSaber.active = false;
             }
         }
