@@ -41,11 +41,11 @@ class StartAnimation {
             screenShake: 0
         };
         
-        // Laser saber - Glowing neon blue/green (random direction)
+        // Laser saber - Glowing neon blue/green (random direction) - SLOWER SPEED
         this.laserSaber = {
             x: 0,
             y: 0,
-            speed: 8,
+            speed: 3, // Reduced from 8 to 3 for slower movement
             angle: 0,
             length: 200,
             active: false,
@@ -53,7 +53,7 @@ class StartAnimation {
             coreColor: '#00ff88', // Neon green
             glowColor: '#4dd0e1', // Light cyan glow
             direction: { x: 0, y: 0 }, // Movement direction
-            rotationSpeed: 0.2
+            rotationSpeed: 0.1 // Also slower rotation
         };
         
         // Initialize snake segments after other properties are set
@@ -399,7 +399,7 @@ class StartAnimation {
     }
     
     createBiteEffects() {
-        // Create particles when snake bites controller
+        // Create particles when snake bites controller (NO RED CRACK LINES)
         for (let i = 0; i < 30; i++) {
             this.effects.particles.push({
                 x: this.controller.x - 30,
@@ -412,15 +412,8 @@ class StartAnimation {
             });
         }
         
-        // Create controller cracks
-        for (let i = 0; i < 8; i++) {
-            this.effects.cracks.push({
-                x: this.controller.x - 60 + Math.random() * 120,
-                y: this.controller.y - 40 + Math.random() * 80,
-                length: Math.random() * 30 + 15,
-                angle: Math.random() * Math.PI * 2
-            });
-        }
+        // REMOVED: Controller crack lines (red lines) as requested by user
+        // No crack effects will be created
     }
     
     createExplosion() {
@@ -636,20 +629,8 @@ class StartAnimation {
         this.ctx.arc(x + 95, y + 35, 8, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // Render cracks if bitten
-        if (this.controller.bitten) {
-            this.ctx.strokeStyle = '#ff4444';
-            this.ctx.lineWidth = 2;
-            this.effects.cracks.forEach(crack => {
-                this.ctx.beginPath();
-                this.ctx.moveTo(crack.x, crack.y);
-                this.ctx.lineTo(
-                    crack.x + Math.cos(crack.angle) * crack.length,
-                    crack.y + Math.sin(crack.angle) * crack.length
-                );
-                this.ctx.stroke();
-            });
-        }
+        // REMOVED: Crack rendering (red lines) as requested by user
+        // Controller will show bite damage through particles and shake effects only
         
         this.ctx.restore();
     }
