@@ -413,7 +413,7 @@ class GameUI {
 
     // Game state updates
     updateScore(score) {
-        this.elements.score.textContent = `Score: ${score}`;
+        this.elements.score.textContent = `Son Goku: ${score || 0}`;
     }
 
     updateHighScore(highScore) {
@@ -425,12 +425,20 @@ class GameUI {
     }
 
     showGameOver(gameData) {
-        const isNewHighScore = gameStorage.setHighScore(gameData.score);
+        // Ensure gameData exists and has required properties
+        const data = gameData || {};
+        const score = data.score || 0;
+        const reason = data.reason || '';
         
-        this.elements.finalScore.textContent = gameData.score;
+        const isNewHighScore = gameStorage.setHighScore(score);
+        
+        this.elements.finalScore.textContent = score;
         this.elements.highScoreMsg.style.display = isNewHighScore ? 'block' : 'none';
         
-        if (gameData.mode === 'timeattack') {
+        // Custom title for collision
+        if (reason.includes('Vegeta')) {
+            this.elements.gameOverTitle.textContent = 'Defeated by Vegeta!';
+        } else if (data.mode === 'timeattack') {
             this.elements.gameOverTitle.textContent = 'Time\'s Up!';
         } else {
             this.elements.gameOverTitle.textContent = 'Game Over!';
@@ -439,8 +447,10 @@ class GameUI {
         this.updateHighScore(gameStorage.getHighScore());
         this.showScreen('gameOver');
         
-        // Update stats
-        gameStorage.updateStats(gameData);
+        // Update stats with safe data
+        if (data.score !== undefined) {
+            gameStorage.updateStats(data);
+        }
         
         // Stop music
         gameAudio.stopBackgroundMusic();

@@ -232,8 +232,23 @@ class AISnake {
         console.log('Vegeta collided with Son Goku! Battle ended!');
         this.game.isRunning = false;
         this.game.gamePhase = 'ended';
-        if (gameUI && gameUI.showGameOver) {
-            gameUI.showGameOver();
+        
+        // Properly trigger game over through game's method
+        if (this.game.gameOver) {
+            this.game.gameOver();
+        } else if (gameUI && gameUI.showGameOver) {
+            // Store final score before showing game over
+            const finalScore = this.game.score || 0;
+            const gameTime = (Date.now() - this.game.gameStartTime) / 1000 || 0;
+            
+            // Show game over screen with proper data
+            setTimeout(() => {
+                gameUI.showGameOver({
+                    score: finalScore,
+                    gameTime: gameTime,
+                    reason: 'Defeated by Vegeta!'
+                });
+            }, 100);
         }
     }
     
