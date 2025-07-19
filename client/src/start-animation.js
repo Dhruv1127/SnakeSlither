@@ -246,10 +246,26 @@ class StartAnimation {
     }
     
     updateSnakeBody() {
+        // Ensure snake and segments exist
+        if (!this.snake || !this.snake.segments || this.snake.segments.length === 0) {
+            return;
+        }
+        
+        // Update head position first
+        if (this.snake.segments[0]) {
+            this.snake.segments[0].x = this.snake.headX;
+            this.snake.segments[0].y = this.snake.headY;
+        }
+        
         // Smooth following movement for snake body
         for (let i = 1; i < this.snake.segments.length; i++) {
             const current = this.snake.segments[i];
             const target = this.snake.segments[i - 1];
+            
+            // Ensure both segments exist
+            if (!current || !target) {
+                continue;
+            }
             
             const dx = target.x - current.x;
             const dy = target.y - current.y;
@@ -261,18 +277,20 @@ class StartAnimation {
                 current.y += dy * ratio * 0.8;
             }
         }
-        
-        // Update head position
-        this.snake.segments[0].x = this.snake.headX;
-        this.snake.segments[0].y = this.snake.headY;
     }
     
     updateSnakeWave() {
         // Add wave motion to snake body
+        if (!this.snake || !this.snake.segments) {
+            return;
+        }
+        
         for (let i = 1; i < this.snake.segments.length; i++) {
             const segment = this.snake.segments[i];
-            const waveOffset = Math.sin(this.time * 3 + i * 0.5) * 3;
-            segment.y += waveOffset * 0.1;
+            if (segment) {
+                const waveOffset = Math.sin(this.time * 3 + i * 0.5) * 3;
+                segment.y += waveOffset * 0.1;
+            }
         }
     }
     

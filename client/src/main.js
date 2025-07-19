@@ -37,7 +37,15 @@
             
             // Wait for start animation to complete
             await new Promise(resolve => {
-                setTimeout(resolve, 500); // Quick timeout to show home screen
+                // Show start animation for every game start
+                if (window.startAnimation && typeof window.startAnimation.start === 'function') {
+                    window.startAnimation.start(() => {
+                        resolve();
+                    });
+                } else {
+                    // Fallback if animation not available
+                    setTimeout(resolve, 100);
+                }
             });
             
             // Show loading screen

@@ -26,6 +26,10 @@ class AISnake {
         this.avoidanceRadius = 40; // Less cautious
         this.chaseRadius = 120; // Wider hunting range
         
+        // Scoring system
+        this.score = 0;
+        this.targetScore = 100; // Score to beat player
+        
         // Initialize position away from player
         this.initializePosition();
         
@@ -254,13 +258,38 @@ class AISnake {
     
     eatFood() {
         // AI snake eats food - generate new food
-        console.log('AI snake ate food!');
+        this.score += 15; // Vegeta scores higher per food
+        console.log(`Vegeta scored! Current score: ${this.score}`);
+        
+        // Check if Vegeta wins
+        if (this.score >= this.targetScore) {
+            console.log('Vegeta reached target score! Player loses!');
+            this.game.isRunning = false;
+            this.game.gamePhase = 'ended';
+            
+            setTimeout(() => {
+                if (gameUI && gameUI.showGameOver) {
+                    gameUI.showGameOver({
+                        score: this.game.score || 0,
+                        gameTime: (Date.now() - this.game.gameStartTime) / 1000 || 0,
+                        reason: 'Vegeta reached the target score first!'
+                    });
+                }
+            }, 100);
+            return;
+        }
+        
         this.game.generateFood();
         
         // Create particles
         this.game.particles.createFoodExplosion(
             this.game.food.x, this.game.food.y, this.color
         );
+        
+        // Update UI with Vegeta's score
+        if (gameUI && gameUI.updateVegetaScore) {
+            gameUI.updateVegetaScore(this.score);
+        }
     }
     
     grow() {

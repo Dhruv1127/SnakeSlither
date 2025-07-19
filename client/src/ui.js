@@ -24,6 +24,7 @@ class GameUI {
             
             // Game Info
             score: document.getElementById('score'),
+            vegetaScore: document.getElementById('vegeta-score'),
             highScore: document.getElementById('high-score'),
             gameMode: document.getElementById('game-mode'),
             timer: document.getElementById('timer'),
@@ -414,6 +415,10 @@ class GameUI {
     // Game state updates
     updateScore(score) {
         this.elements.score.textContent = `Son Goku: ${score || 0}`;
+    }
+
+    updateVegetaScore(score) {
+        this.elements.vegetaScore.textContent = `Vegeta: ${score || 0}`;
     }
 
     updateHighScore(highScore) {

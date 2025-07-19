@@ -220,6 +220,14 @@ class SnakeGame {
         // Apply level-specific settings
         this.applyLevelSettings(gameMode, level);
         
+        // Reset AI snake score
+        if (this.aiSnake) {
+            this.aiSnake.score = 0;
+            if (gameUI && gameUI.updateVegetaScore) {
+                gameUI.updateVegetaScore(0);
+            }
+        }
+        
         // Initialize game based on mode
         this.initializeGame();
         
