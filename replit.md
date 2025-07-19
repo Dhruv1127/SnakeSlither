@@ -126,7 +126,7 @@ The application is designed for easy deployment to platforms like Replit, with d
 
 ## Recent Changes: Latest modifications with dates
 
-### July 19, 2025 - Dragon Ball Z Theme & Enhanced Features
+### July 19, 2025 - Migration & Special Abilities Enhancement
 - **Dragon Ball Z Characters**: Son Goku (player) vs Vegeta (AI enemy)
 - **Glowing Neon Laser Saber**: Enhanced start animation with cyan/green glowing saber
 - **Vegeta AI Snake**: Royal blue Saiyan Prince with electric blue aura and aggressive behavior
@@ -141,6 +141,12 @@ The application is designed for easy deployment to platforms like Replit, with d
 - **Wave Motion Mechanics**: Snake tail moves with wave function when growing
 - **Enhanced Growth System**: Food eating triggers multi-segment growth with visual effects
 - **Comprehensive Integration**: All features working together seamlessly
+- **Special Abilities System**: Goku speed boost (Space key) and power ball attacks (Shift key)  
+- **Enhanced Sound Effects**: Start animation sound effects, power-up sounds, and ability activation sounds
+- **Power Ball Combat**: Goku can launch energy attacks at Vegeta AI with visual trails and collision detection
+- **Speed Boost Mechanics**: Goku gains temporary speed increase with visual golden aura effects
+- **Audio Integration**: Bite, explosion, whoosh, and special ability sound effects added
+- **Project Migration**: Successfully migrated from Replit Agent to standard Replit environment
 
 ## Enhanced Game Features
 

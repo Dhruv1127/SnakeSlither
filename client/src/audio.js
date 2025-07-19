@@ -15,7 +15,14 @@ class GameAudio {
         this.soundPaths = {
             background: '/sounds/background.mp3',
             hit: '/sounds/hit.mp3',
-            success: '/sounds/success.mp3'
+            success: '/sounds/success.mp3',
+            // New sound effects for enhanced gameplay
+            whoosh: '/sounds/hit.mp3', // Reuse for swoosh sounds
+            bite: '/sounds/hit.mp3', // Controller bite sound
+            explosion: '/sounds/hit.mp3', // Explosion sound
+            powerup: '/sounds/success.mp3', // Power ball sound
+            speedboost: '/sounds/success.mp3', // Speed boost sound
+            clash: '/sounds/hit.mp3' // Power ball clash sound
         };
     }
 

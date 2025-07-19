@@ -96,6 +96,12 @@ class StartAnimation {
         this.onComplete = onComplete;
         this.phase = 'enter';
         this.time = 0;
+        
+        // Play start animation sound effects
+        if (window.gameAudio) {
+            window.gameAudio.playSound('whoosh'); // Snake entering
+        }
+        
         this.animate();
     }
     
@@ -221,10 +227,20 @@ class StartAnimation {
             this.effects.biteFlash = 1;
             this.createBiteEffects();
             
+            // Play bite sound effect
+            if (window.gameAudio) {
+                window.gameAudio.playSound('bite');
+            }
+            
             // Transition to explosion phase
             setTimeout(() => {
                 this.phase = 'explosion';
                 this.createExplosion();
+                
+                // Play explosion sound effect
+                if (window.gameAudio) {
+                    window.gameAudio.playSound('explosion');
+                }
             }, 1000);
         }
     }

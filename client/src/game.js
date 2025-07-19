@@ -52,6 +52,9 @@ class SnakeGame {
         // AI Enemy Snake (initialize after game setup)
         this.aiSnake = null;
         
+        // Special Abilities System
+        this.specialAbilities = null;
+        
         // Input handling
         this.setupInputHandlers();
         
@@ -60,6 +63,58 @@ class SnakeGame {
         
         // Player name
         this.playerName = "Son Goku";
+        
+        // Initialize special abilities after a brief delay
+        setTimeout(() => {
+            if (window.SpecialAbilities) {
+                this.specialAbilities = new SpecialAbilities(this);
+                console.log('Special abilities initialized');
+            }
+        }, 100);
+        
+        // Special Abilities System
+        this.gokuAbilities = {
+            speedBoost: {
+                active: false,
+                duration: 0,
+                maxDuration: 120, // 2 seconds at 60fps
+                multiplier: 2.5,
+                cooldown: 0,
+                maxCooldown: 300, // 5 seconds
+                activations: 0
+            },
+            powerBall: {
+                x: 0, y: 0,
+                vx: 0, vy: 0,
+                active: false,
+                size: 8,
+                energy: 100,
+                cooldown: 0,
+                maxCooldown: 180, // 3 seconds
+                trail: []
+            }
+        };
+        
+        this.vegetaAbilities = {
+            powerBall: {
+                x: 0, y: 0,
+                vx: 0, vy: 0,
+                active: false,
+                size: 8,
+                energy: 100,
+                cooldown: 0,
+                maxCooldown: 180,
+                trail: []
+            },
+            aggressiveMode: {
+                active: false,
+                duration: 0,
+                maxDuration: 180, // 3 seconds
+                speedMultiplier: 1.8,
+                cooldown: 0,
+                maxCooldown: 240 // 4 seconds
+            }
+        };
         
         console.log('Snake Viper game initialized with smooth movement and AI enemy');
     }
@@ -98,6 +153,17 @@ class SnakeGame {
         
         const key = e.code;
         const settings = this.settings;
+        
+        // Special abilities
+        if (key === 'Space' && this.specialAbilities) {
+            this.specialAbilities.activateGokuSpeedBoost();
+            return;
+        }
+        
+        if ((key === 'ShiftLeft' || key === 'ShiftRight') && this.specialAbilities) {
+            this.specialAbilities.launchGokuPowerBall();
+            return;
+        }
         
         // Check control scheme
         let validKeys = [];
@@ -400,12 +466,25 @@ class SnakeGame {
             deltaTime = 1;
         }
         
+        // Update special abilities
+        if (this.specialAbilities) {
+            this.specialAbilities.updateGokuAbilities(deltaTime);
+            this.specialAbilities.updateVegetaAbilities(deltaTime);
+        }
+        
         // Smooth direction interpolation
         this.smoothTurn(deltaTime);
         
-        // Move snake head
+        // Move snake head with speed boost consideration
         const head = this.snake[0];
-        const moveDistance = this.gameSpeed * deltaTime * 0.5; // Slower movement
+        let currentSpeed = this.gameSpeed;
+        
+        // Apply speed boosts from special abilities
+        if (this.specialAbilities) {
+            currentSpeed *= this.specialAbilities.getSpeedMultiplier();
+        }
+        
+        const moveDistance = currentSpeed * deltaTime * 0.5; // Slower movement
         
         const newHead = {
             x: head.x + Math.cos(this.direction) * moveDistance,
@@ -852,6 +931,11 @@ class SnakeGame {
         
         // Render particles
         this.particles.render();
+        
+        // Render special abilities
+        if (this.specialAbilities) {
+            this.specialAbilities.renderSpecialAbilities(this.ctx);
+        }
     }
 
     renderBackground() {
