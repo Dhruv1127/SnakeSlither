@@ -289,8 +289,8 @@ class SnakeGame {
         // Reset AI snake score
         if (this.aiSnake) {
             this.aiSnake.score = 0;
-            if (gameUI && gameUI.updateVegetaScore) {
-                gameUI.updateVegetaScore(0);
+            if (window.gameUI && window.gameUI.updateVegetaScore) {
+                window.gameUI.updateVegetaScore(0);
             }
         }
         
@@ -304,7 +304,9 @@ class SnakeGame {
             this.timeLeft = timeLimits[level] || 60;
             this.gameTimer = setInterval(() => {
                 this.timeLeft--;
-                gameUI.updateTimer(this.timeLeft);
+                if (window.gameUI && window.gameUI.updateTimer) {
+                    window.gameUI.updateTimer(this.timeLeft);
+                }
                 if (this.timeLeft <= 0) {
                     this.gameOver();
                 }
@@ -315,7 +317,9 @@ class SnakeGame {
         this.gameLoop();
         
         // Start background music
-        gameAudio.playBackgroundMusic();
+        if (window.gameAudio && window.gameAudio.playBackgroundMusic) {
+            window.gameAudio.playBackgroundMusic();
+        }
         
         console.log(`Game started in ${gameMode} mode, level ${level}`);
     }
@@ -366,7 +370,9 @@ class SnakeGame {
         this.particles.clear();
         
         // Update UI
-        gameUI.updateScore(this.score);
+        if (window.gameUI && window.gameUI.updateScore) {
+            window.gameUI.updateScore(this.score);
+        }
     }
 
     generateFood() {
@@ -639,7 +645,7 @@ class SnakeGame {
 
     eatFood() {
         this.score += 10;
-        gameUI.updateScore(this.score);
+        if (window.gameUI && window.gameUI.updateScore) { window.gameUI.updateScore(this.score); }
         
         // Create particle explosion
         this.particles.createFoodExplosion(
@@ -647,7 +653,7 @@ class SnakeGame {
         );
         
         // Play sound effect
-        gameAudio.playEatSound();
+        if (window.gameAudio && window.gameAudio.playEatSound) { window.gameAudio.playEatSound(); }
         
         // Generate new food
         this.generateFood();
@@ -861,8 +867,8 @@ class SnakeGame {
         // Create explosion effect
         if (!isWin) {
             this.particles.createGameOverExplosion(this.snake);
-            gameAudio.playGameOverSound();
-            gameUI.screenShake();
+            if (window.gameAudio && window.gameAudio.playGameOverSound) { window.gameAudio.playGameOverSound(); }
+            if (window.gameUI && window.gameUI.screenShake) { window.gameUI.screenShake(); }
         }
         
         // Show game over screen
@@ -875,7 +881,7 @@ class SnakeGame {
         };
         
         console.log('Game over:', gameData);
-        setTimeout(() => gameUI.showGameOver(gameData), 500);
+        setTimeout(() => { if (window.gameUI && window.gameUI.showGameOver) { window.gameUI.showGameOver(gameData); } }, 500);
     }
 
     pause() {
@@ -1117,8 +1123,8 @@ class SnakeGame {
         // Create explosion effect
         if (!isWin) {
             this.particles.createGameOverExplosion(this.snake);
-            gameAudio.playGameOverSound();
-            gameUI.screenShake();
+            if (window.gameAudio && window.gameAudio.playGameOverSound) { window.gameAudio.playGameOverSound(); }
+            if (window.gameUI && window.gameUI.screenShake) { window.gameUI.screenShake(); }
         }
         
         // Show game over screen
@@ -1131,12 +1137,12 @@ class SnakeGame {
         };
         
         console.log('Game over:', gameData);
-        setTimeout(() => gameUI.showGameOver(gameData), 500);
+        setTimeout(() => { if (window.gameUI && window.gameUI.showGameOver) { window.gameUI.showGameOver(gameData); } }, 500);
     }
 
     eatFood() {
         this.score += 10;
-        gameUI.updateScore(this.score);
+        if (window.gameUI && window.gameUI.updateScore) { window.gameUI.updateScore(this.score); }
         
         // Create particle explosion
         this.particles.createFoodExplosion(
@@ -1144,7 +1150,7 @@ class SnakeGame {
         );
         
         // Play sound effect
-        gameAudio.playEatSound();
+        if (window.gameAudio && window.gameAudio.playEatSound) { window.gameAudio.playEatSound(); }
         
         // Generate new food
         this.generateFood();

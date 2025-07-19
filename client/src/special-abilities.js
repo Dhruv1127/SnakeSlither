@@ -212,6 +212,40 @@ class SpecialAbilities {
         }
     }
     
+    updateCollisions() {
+        // Update power ball collisions
+        const gokuPowerBall = this.gokuAbilities.powerBall;
+        const vegetaPowerBall = this.vegetaAbilities.powerBall;
+        
+        // Check Goku's power ball collision with Vegeta
+        if (gokuPowerBall.active && this.game.aiSnake && this.game.aiSnake.snake.length > 0) {
+            const vegetaHead = this.game.aiSnake.snake[0];
+            const distance = Math.sqrt(
+                (gokuPowerBall.x - vegetaHead.x) ** 2 + 
+                (gokuPowerBall.y - vegetaHead.y) ** 2
+            );
+            
+            if (distance < 20) {
+                this.handlePowerBallHit(gokuPowerBall, vegetaHead);
+                gokuPowerBall.active = false;
+            }
+        }
+        
+        // Check Vegeta's power ball collision with Goku
+        if (vegetaPowerBall.active && this.game.snake.length > 0) {
+            const gokuHead = this.game.snake[0];
+            const distance = Math.sqrt(
+                (vegetaPowerBall.x - gokuHead.x) ** 2 + 
+                (vegetaPowerBall.y - gokuHead.y) ** 2
+            );
+            
+            if (distance < 20) {
+                this.handlePowerBallHit(vegetaPowerBall, gokuHead);
+                vegetaPowerBall.active = false;
+            }
+        }
+    }
+    
     handlePowerBallHit(powerBall, target) {
         // Create explosion effect
         if (this.game.particles) {
