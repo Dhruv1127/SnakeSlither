@@ -72,49 +72,7 @@ class SnakeGame {
             }
         }, 100);
         
-        // Special Abilities System
-        this.gokuAbilities = {
-            speedBoost: {
-                active: false,
-                duration: 0,
-                maxDuration: 120, // 2 seconds at 60fps
-                multiplier: 2.5,
-                cooldown: 0,
-                maxCooldown: 300, // 5 seconds
-                activations: 0
-            },
-            powerBall: {
-                x: 0, y: 0,
-                vx: 0, vy: 0,
-                active: false,
-                size: 8,
-                energy: 100,
-                cooldown: 0,
-                maxCooldown: 180, // 3 seconds
-                trail: []
-            }
-        };
-        
-        this.vegetaAbilities = {
-            powerBall: {
-                x: 0, y: 0,
-                vx: 0, vy: 0,
-                active: false,
-                size: 8,
-                energy: 100,
-                cooldown: 0,
-                maxCooldown: 180,
-                trail: []
-            },
-            aggressiveMode: {
-                active: false,
-                duration: 0,
-                maxDuration: 180, // 3 seconds
-                speedMultiplier: 1.8,
-                cooldown: 0,
-                maxCooldown: 240 // 4 seconds
-            }
-        };
+
         
         console.log('Snake Viper game initialized with smooth movement and AI enemy');
     }
@@ -473,8 +431,10 @@ class SnakeGame {
         }
         
         // Update special abilities
-        if (this.specialAbilities) {
+        if (this.specialAbilities && typeof this.specialAbilities.update === 'function') {
             this.specialAbilities.update(deltaTime);
+        } else if (this.specialAbilities) {
+            console.error('SpecialAbilities update method not found:', typeof this.specialAbilities.update);
         }
         
         // Smooth direction interpolation
