@@ -1,4 +1,4 @@
-# Snake Viper - Enhanced Dragon Ball Z Snake Game
+# Snake Slither - Enhanced Dragon Ball Z Snake Game
 
 ## Overview
 A fully standalone HTML/CSS/JavaScript Snake game featuring Dragon Ball Z characters, special abilities, and AI opponents. This game runs completely in the browser without any server requirements.

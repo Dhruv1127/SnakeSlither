@@ -1,4 +1,4 @@
-// Enhanced Snake Viper Game Logic with Smooth Movement
+// Enhanced Snake Slither Game Logic with Smooth Movement
 class SnakeGame {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
@@ -74,7 +74,7 @@ class SnakeGame {
         
 
         
-        console.log('Snake Viper game initialized with smooth movement and AI enemy');
+        console.log('Snake Slither game initialized with smooth movement and AI enemy');
     }
 
     resizeCanvas() {
