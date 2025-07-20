@@ -439,6 +439,11 @@ class SnakeGame {
             console.error('SpecialAbilities update method not found:', typeof this.specialAbilities.update);
         }
         
+        // AI movement toward food (optional - can be toggled)
+        if (this.settings.aiMode && this.food && this.snake.length > 0) {
+            this.updateAIDirection();
+        }
+        
         // Smooth direction interpolation
         this.smoothTurn(deltaTime);
         
@@ -614,7 +619,8 @@ class SnakeGame {
     }
 
     getSnakeLength() {
-        return 3 + Math.floor(this.score / 50); // Grow every 50 points instead of 10
+        // Classic Snake growth: grow one segment per food eaten
+        return 3 + Math.floor(this.score / 10); // Grow every 10 points (each food eaten)
     }
 
     eatFood() {
@@ -626,6 +632,13 @@ class SnakeGame {
             this.food.x, this.food.y, this.getFoodColor()
         );
         
+        // Add tail segment immediately (classic Snake behavior)
+        this.growSnake();
+        
+        // Enhanced visual feedback for tail growth
+        this.waveAmplitude = Math.min(this.waveAmplitude + 0.5, 5);
+        console.log(`Enhanced eating! Growth queue: ${this.growthQueue}, Wave: ${this.waveAmplitude}`);
+        
         // Play sound effect
         if (window.gameAudio && window.gameAudio.playEatSound) { window.gameAudio.playEatSound(); }
         
@@ -636,6 +649,84 @@ class SnakeGame {
         if (this.gameMode === 'classic' && this.gameSpeed < 6) {
             this.gameSpeed += 0.1;
         }
+    }
+    
+    growSnake() {
+        // Add a new segment at the tail position for immediate growth
+        if (this.snake.length > 0) {
+            const tail = this.snake[this.snake.length - 1];
+            const newSegment = { x: tail.x, y: tail.y };
+            this.snake.push(newSegment);
+            
+            // Increment growth queue for smooth animation
+            this.growthQueue = Math.min(this.growthQueue + 3, 10);
+        }
+    }
+    
+    updateAIDirection() {
+        // Simple AI that moves snake toward food while avoiding body
+        const head = this.snake[0];
+        const food = this.food;
+        
+        if (!head || !food) return;
+        
+        // Calculate direction to food
+        const dx = food.x - head.x;
+        const dy = food.y - head.y;
+        
+        // Check if direct path to food would hit body
+        const directAngle = Math.atan2(dy, dx);
+        const safeAngle = this.findSafeDirection(head, directAngle);
+        
+        this.targetDirection = safeAngle;
+    }
+    
+    findSafeDirection(head, preferredAngle) {
+        // Check if the preferred direction is safe
+        if (this.isDirectionSafe(head, preferredAngle)) {
+            return preferredAngle;
+        }
+        
+        // Try alternative directions
+        const alternatives = [
+            preferredAngle + Math.PI / 4,
+            preferredAngle - Math.PI / 4,
+            preferredAngle + Math.PI / 2,
+            preferredAngle - Math.PI / 2,
+        ];
+        
+        for (let angle of alternatives) {
+            if (this.isDirectionSafe(head, angle)) {
+                return angle;
+            }
+        }
+        
+        // If no safe direction, continue current direction
+        return this.direction;
+    }
+    
+    isDirectionSafe(head, angle) {
+        // Check if moving in this direction would hit the snake's body
+        const checkDistance = this.snakeSize * 3;
+        const checkX = head.x + Math.cos(angle) * checkDistance;
+        const checkY = head.y + Math.sin(angle) * checkDistance;
+        
+        // Check against body segments (skip the first few to avoid immediate collision)
+        for (let i = 4; i < this.snake.length; i++) {
+            const segment = this.snake[i];
+            const distance = Math.sqrt((checkX - segment.x) ** 2 + (checkY - segment.y) ** 2);
+            if (distance < this.snakeSize * 2) {
+                return false;
+            }
+        }
+        
+        // Check against walls
+        if (checkX < this.snakeSize || checkX > this.canvasSize - this.snakeSize ||
+            checkY < this.snakeSize || checkY > this.canvasSize - this.snakeSize) {
+            return false;
+        }
+        
+        return true;
     }
 
     addRandomObstacle() {
@@ -1209,45 +1300,6 @@ class SnakeGame {
                 finalScore.textContent = gameData.score || 0;
                 console.log('Game over screen shown via fallback method');
             }
-        }
-    }
-
-    eatFood() {
-        this.score += 10;
-        if (window.gameUI && window.gameUI.updateScore) { window.gameUI.updateScore(this.score); }
-        
-        // Create particle explosion
-        this.particles.createFoodExplosion(
-            this.food.x, this.food.y, this.getFoodColor()
-        );
-        
-        // Play sound effect
-        if (window.gameAudio && window.gameAudio.playEatSound) { window.gameAudio.playEatSound(); }
-        
-        // Generate new food
-        this.generateFood();
-        
-        // Increase speed slightly in classic mode
-        if (this.gameMode === 'classic' && this.gameSpeed < 6) {
-            this.gameSpeed += 0.1;
-        }
-    }
-
-    addRandomObstacle() {
-        let newObstacle;
-        let attempts = 0;
-        
-        do {
-            newObstacle = {
-                x: 30 + Math.random() * (this.canvasSize - 60),
-                y: 30 + Math.random() * (this.canvasSize - 60),
-                size: 10 + Math.random() * 8
-            };
-            attempts++;
-        } while (this.isPositionOccupied(newObstacle.x, newObstacle.y, newObstacle.size) && attempts < 50);
-        
-        if (attempts < 50) {
-            this.obstacles.push(newObstacle);
         }
     }
 
