@@ -180,7 +180,11 @@ The application is designed for easy deployment to platforms like Replit, with d
 - **Speed Boost Mechanics**: Goku gains temporary speed increase with visual golden aura effects
 - **Audio Integration**: Bite, explosion, whoosh, and special ability sound effects added
 
-### July 20, 2025 - Pure HTML/CSS/JS Conversion
+### July 20, 2025 - Saiyan Tail Enhancement & Pure HTML/CSS/JS Conversion
+- **Saiyan Tails Added**: Both Goku and Vegeta now have authentic Saiyan tails with unique designs
+- **Goku's Tail**: Brown fuzzy tail with wave motion, curved design, and fur texture details
+- **Vegeta's Tail**: Royal dark gray tail with spiky tip, S-curve design, and blue aura when using abilities
+- **Tail Animation**: Tails sway naturally with wave motion and respond to character movement
 - **Standalone Conversion**: Successfully converted from React/Node.js to pure HTML, CSS, JavaScript
 - **File Structure**: Created index.html with embedded CSS and modular JS files in /js directory
 - **Client-Side Only**: Removed all server dependencies, making game fully client-side

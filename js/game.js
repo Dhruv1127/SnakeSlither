@@ -347,7 +347,9 @@ class SnakeGame {
         
         if (attempts < 100) {
             this.food = food;
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             // No valid positions - player wins!
             this.gameOver(true);
         }
@@ -684,7 +686,9 @@ class SnakeGame {
         } else if (this.settings.theme === 'retro') {
             gradient.addColorStop(0, '#3d2820');
             gradient.addColorStop(1, '#2d1810');
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             gradient.addColorStop(0, '#1a1a1a');
             gradient.addColorStop(1, '#0a0a0a');
         }
@@ -706,6 +710,8 @@ class SnakeGame {
             
             if (isHead) {
                 this.renderSnakeHead(segment.x, segment.y);
+            } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
             } else {
                 this.renderSnakeSegment(segment.x, segment.y, alpha, i);
             }
@@ -860,7 +866,9 @@ class SnakeGame {
             window.gameUI.showGameOver(gameData); 
         } else if (gameUI && gameUI.showGameOver) {
             gameUI.showGameOver(gameData);
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             console.error('gameUI.showGameOver not available! Trying fallback...');
             // Fallback: Force show game over screen directly
             const gameOverScreen = document.getElementById('game-over-screen');
@@ -917,6 +925,63 @@ class SnakeGame {
         this.isMouseControlling = false;
     }
 
+    renderGokuTail(x, y, alpha, index) {
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
+        
+        this.ctx.save();
+        
+        // Tail gets smaller towards the end
+        const tailLength = 25;
+        const tailWidth = 6;
+        
+        // Calculate tail direction (opposite of movement)
+        let tailDirection = this.direction + Math.PI;
+        
+        // Add some wave motion to the tail
+        const waveOffset = Math.sin(Date.now() * 0.005 + index) * 0.5;
+        tailDirection += waveOffset;
+        
+        // Draw fluffy Saiyan tail
+        this.ctx.strokeStyle = '#8B4513'; // Brown color for Goku's tail
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.lineWidth = tailWidth;
+        this.ctx.lineCap = 'round';
+        this.ctx.globalAlpha = Math.max(0.4, alpha);
+        
+        // Draw tail curve
+        const tailEndX = x + Math.cos(tailDirection) * tailLength;
+        const tailEndY = y + Math.sin(tailDirection) * tailLength;
+        
+        // Control point for curve
+        const controlX = x + Math.cos(tailDirection + 0.8) * tailLength * 0.7;
+        const controlY = y + Math.sin(tailDirection + 0.8) * tailLength * 0.7;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.quadraticCurveTo(controlX, controlY, tailEndX, tailEndY);
+        this.ctx.stroke();
+        
+        // Draw tail tip (fluffy end)
+        this.ctx.fillStyle = '#654321';
+        this.ctx.beginPath();
+        this.ctx.arc(tailEndX, tailEndY, tailWidth * 1.2, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Add some fur texture
+        for (let i = 0; i < 5; i++) {
+            const angle = (Math.PI * 2 / 5) * i;
+            const furX = tailEndX + Math.cos(angle) * tailWidth * 0.8;
+            const furY = tailEndY + Math.sin(angle) * tailWidth * 0.8;
+            
+            this.ctx.beginPath();
+            this.ctx.arc(furX, furY, 2, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        this.ctx.restore();
+    }
+
     // Render methods
     render() {
         // Clear canvas with gradient background
@@ -961,7 +1026,9 @@ class SnakeGame {
         } else if (this.settings.theme === 'retro') {
             gradient.addColorStop(0, '#3d2820');
             gradient.addColorStop(1, '#2d1810');
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             gradient.addColorStop(0, '#1a1a1a');
             gradient.addColorStop(1, '#0a0a0a');
         }
@@ -983,6 +1050,8 @@ class SnakeGame {
             
             if (isHead) {
                 this.renderSnakeHead(segment.x, segment.y);
+            } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
             } else {
                 this.renderSnakeSegment(segment.x, segment.y, alpha, i);
             }
@@ -1137,7 +1206,9 @@ class SnakeGame {
             window.gameUI.showGameOver(gameData); 
         } else if (gameUI && gameUI.showGameOver) {
             gameUI.showGameOver(gameData);
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             console.error('gameUI.showGameOver not available! Trying fallback...');
             // Fallback: Force show game over screen directly
             const gameOverScreen = document.getElementById('game-over-screen');

@@ -367,9 +367,14 @@ class AISnake {
             // Add wave motion to body
             const waveY = segment.y + Math.sin(Date.now() * 0.003 + i * 0.5) * 2;
             
-            ctx.beginPath();
-            ctx.arc(segment.x, waveY, segment.size, 0, Math.PI * 2);
-            ctx.fill();
+            // Special rendering for tail
+            if (i === this.segments.length - 1) {
+                this.renderVegetaTail(ctx, segment.x, waveY, alpha, i);
+            } else {
+                ctx.beginPath();
+                ctx.arc(segment.x, waveY, segment.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
             
             // Draw eyes on head
             if (isHead) {
@@ -390,6 +395,82 @@ class AISnake {
                 ctx.arc(eyeX2, eyeY2, eyeSize, 0, Math.PI * 2);
                 ctx.fill();
             }
+        }
+        
+        ctx.restore();
+    }
+
+    renderVegetaTail(ctx, x, y, alpha, index) {
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
+        
+        ctx.save();
+        
+        // Vegeta's royal tail - more elegant than Goku's
+        const tailLength = 30;
+        const tailWidth = 8;
+        
+        // Calculate tail direction (opposite of movement)
+        let tailDirection = this.direction + Math.PI;
+        
+        // Add regal wave motion to Vegeta's tail
+        const waveOffset = Math.sin(Date.now() * 0.004 + index) * 0.4;
+        tailDirection += waveOffset;
+        
+        // Draw royal Saiyan tail with darker color
+        ctx.strokeStyle = '#4A4A4A'; // Dark gray for Vegeta's tail
+        ctx.fillStyle = '#4A4A4A';
+        ctx.lineWidth = tailWidth;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = Math.max(0.5, alpha);
+        
+        // Draw tail curve - more curved than Goku's
+        const tailEndX = x + Math.cos(tailDirection) * tailLength;
+        const tailEndY = y + Math.sin(tailDirection) * tailLength;
+        
+        // Control points for S-curve (more royal shape)
+        const control1X = x + Math.cos(tailDirection + 0.6) * tailLength * 0.5;
+        const control1Y = y + Math.sin(tailDirection + 0.6) * tailLength * 0.5;
+        const control2X = x + Math.cos(tailDirection - 0.4) * tailLength * 0.8;
+        const control2Y = y + Math.sin(tailDirection - 0.4) * tailLength * 0.8;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.bezierCurveTo(control1X, control1Y, control2X, control2Y, tailEndX, tailEndY);
+        ctx.stroke();
+        
+        // Draw royal tail tip (more refined than Goku's)
+        ctx.fillStyle = '#333333';
+        ctx.beginPath();
+        ctx.arc(tailEndX, tailEndY, tailWidth * 1.1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add Vegeta's signature spiky tail tip
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 / 6) * i;
+            const spikeX = tailEndX + Math.cos(angle) * tailWidth * 1.5;
+            const spikeY = tailEndY + Math.sin(angle) * tailWidth * 1.5;
+            
+            ctx.beginPath();
+            ctx.moveTo(tailEndX, tailEndY);
+            ctx.lineTo(spikeX, spikeY);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#2A2A2A';
+            ctx.stroke();
+        }
+        
+        // Add royal blue aura around tail when active
+        if (this.activeAbilities && this.activeAbilities.length > 0) {
+            ctx.shadowColor = this.auraColor;
+            ctx.shadowBlur = 15;
+            ctx.globalAlpha = 0.3;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(control1X, control1Y, control2X, control2Y, tailEndX, tailEndY);
+            ctx.lineWidth = tailWidth + 4;
+            ctx.strokeStyle = this.auraColor;
+            ctx.stroke();
         }
         
         ctx.restore();
