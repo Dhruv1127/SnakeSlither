@@ -266,7 +266,7 @@ class GameUI {
     }
 
     quitGame() {
-        if (confirm('Are you sure you want to quit Snake Viper?')) {
+        if (confirm('Are you sure you want to quit Snake Slither?')) {
             window.close();
         }
     }

@@ -807,7 +807,7 @@ class StartAnimation {
         const alpha = Math.min(1, (this.time - 3) * 3);
         this.ctx.globalAlpha = alpha;
         
-        this.ctx.fillText('SNAKE VIPER', this.canvas.width / 2, this.canvas.height / 2 - 50);
+        this.ctx.fillText('SNAKE SLITHER', this.canvas.width / 2, this.canvas.height / 2 - 50);
         
         this.ctx.font = 'bold 36px Arial';
         this.ctx.fillStyle = '#ffffff';

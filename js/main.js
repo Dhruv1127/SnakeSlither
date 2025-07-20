@@ -2,7 +2,7 @@
 (function() {
     'use strict';
     
-    console.log('Snake Viper starting...');
+    console.log('Snake Slither starting...');
     
     // Show loading screen initially
     function showLoadingScreen() {
@@ -79,14 +79,14 @@
             gameStorage.applyTheme(settings.theme);
             gameAudio.setEnabled(settings.soundEnabled);
             
-            console.log('Snake Viper initialized successfully with all enhanced features!');
+            console.log('Snake Slither initialized successfully with all enhanced features!');
             
             // Hide loading screen and show start screen
             hideLoadingScreen();
             
         } catch (error) {
             console.error('Failed to initialize game:', error);
-            showError('Failed to initialize Snake Viper. Please refresh the page.');
+            showError('Failed to initialize Snake Slither. Please refresh the page.');
         }
     }
     
@@ -247,5 +247,5 @@
         };
     }
     
-    console.log('Snake Viper loaded successfully!');
+    console.log('Snake Slither loaded successfully!');
 })();
