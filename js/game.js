@@ -899,35 +899,50 @@ class SnakeGame {
         
         this.ctx.save();
         
-        // Tail gets smaller towards the end
-        const tailLength = 25;
-        const tailWidth = 6;
+        // Enhanced Saiyan tail - larger and more prominent
+        const tailLength = 35;
+        const tailWidth = 8;
         
-        // Calculate tail direction (opposite of movement)
+        // Calculate tail direction (opposite of movement direction)
         let tailDirection = this.direction + Math.PI;
         
-        // Add some wave motion to the tail
-        const waveOffset = Math.sin(Date.now() * 0.005 + index) * 0.5;
+        // Add natural wave motion to the tail
+        const time = Date.now() * 0.003;
+        const waveOffset = Math.sin(time + index * 0.5) * 0.8;
         tailDirection += waveOffset;
         
-        // Draw fluffy Saiyan tail
-        this.ctx.strokeStyle = '#8B4513'; // Brown color for Goku's tail
-        this.ctx.fillStyle = '#8B4513';
+        // Draw fluffy Saiyan tail with gradient
+        const gradient = this.ctx.createLinearGradient(
+            x, y, 
+            x + Math.cos(tailDirection) * tailLength, 
+            y + Math.sin(tailDirection) * tailLength
+        );
+        gradient.addColorStop(0, '#8B4513'); // Brown at base
+        gradient.addColorStop(0.7, '#A0522D'); // Sandy brown
+        gradient.addColorStop(1, '#654321'); // Dark brown at tip
+        
+        this.ctx.strokeStyle = gradient;
+        this.ctx.fillStyle = gradient;
         this.ctx.lineWidth = tailWidth;
         this.ctx.lineCap = 'round';
-        this.ctx.globalAlpha = Math.max(0.4, alpha);
+        this.ctx.globalAlpha = Math.max(0.6, alpha); // More visible
         
-        // Draw tail curve
-        const tailEndX = x + Math.cos(tailDirection) * tailLength;
-        const tailEndY = y + Math.sin(tailDirection) * tailLength;
+        // Draw curved tail with S-shape for more natural look
+        const midLength = tailLength * 0.6;
+        const midX = x + Math.cos(tailDirection) * midLength;
+        const midY = y + Math.sin(tailDirection) * midLength;
         
-        // Control point for curve
-        const controlX = x + Math.cos(tailDirection + 0.8) * tailLength * 0.7;
-        const controlY = y + Math.sin(tailDirection + 0.8) * tailLength * 0.7;
+        const tailEndX = x + Math.cos(tailDirection + waveOffset * 0.5) * tailLength;
+        const tailEndY = y + Math.sin(tailDirection + waveOffset * 0.5) * tailLength;
         
+        // Control points for smoother curve
+        const controlX1 = x + Math.cos(tailDirection + 0.5) * tailLength * 0.4;
+        const controlY1 = y + Math.sin(tailDirection + 0.5) * tailLength * 0.4;
+        
+        // Draw main tail curve
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
-        this.ctx.quadraticCurveTo(controlX, controlY, tailEndX, tailEndY);
+        this.ctx.quadraticCurveTo(controlX1, controlY1, tailEndX, tailEndY);
         this.ctx.stroke();
         
         // Draw tail tip (fluffy end)
@@ -1014,14 +1029,18 @@ class SnakeGame {
         for (let i = this.snake.length - 1; i >= 0; i--) {
             const segment = this.snake[i];
             const isHead = i === 0;
+            const isTail = i === this.snake.length - 1;
             const alpha = 1 - (i * 0.05); // Fade towards tail
             
             if (isHead) {
                 this.renderSnakeHead(segment.x, segment.y);
-            } else if (i === this.snake.length - 1) {
-                this.renderGokuTail(segment.x, segment.y, alpha, i);
             } else {
                 this.renderSnakeSegment(segment.x, segment.y, alpha, i);
+            }
+            
+            // Always render the Saiyan tail on the last segment (permanent tail)
+            if (isTail && this.snake.length > 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
             }
         }
         
