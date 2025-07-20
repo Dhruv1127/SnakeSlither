@@ -487,14 +487,16 @@ class SnakeGame {
             }
         }
         
-        // Check collision with Vegeta (AI snake)
-        if (this.aiSnake && this.aiSnake.segments && this.aiSnake.segments.length > 0) {
+        // Enhanced collision detection with Vegeta (AI snake)
+        if (this.aiSnake && this.aiSnake.segments && this.aiSnake.segments.length > 0 && !this.aiSnake.regenerating) {
             const vegetaHead = this.aiSnake.segments[0];
             
             // Check collision with Vegeta's head
-            if (vegetaHead) {
+            if (vegetaHead && isFinite(vegetaHead.x) && isFinite(vegetaHead.y)) {
                 const distance = Math.sqrt((newHead.x - vegetaHead.x) ** 2 + (newHead.y - vegetaHead.y) ** 2);
-                if (distance < this.snakeSize + this.aiSnake.segmentSize) {
+                const collisionRadius = (this.snakeSize + this.aiSnake.segmentSize) * 0.9; // More accurate collision
+                
+                if (distance < collisionRadius) {
                     console.log('Son Goku collided with Vegeta! Battle ended! - STOPPING GAME IMMEDIATELY');
                     this.isRunning = false;
                     cancelAnimationFrame(this.animationId);
@@ -506,9 +508,11 @@ class SnakeGame {
             // Check collision with Vegeta's body segments
             for (let i = 1; i < this.aiSnake.segments.length; i++) {
                 const vegetaSegment = this.aiSnake.segments[i];
-                if (vegetaSegment) {
+                if (vegetaSegment && isFinite(vegetaSegment.x) && isFinite(vegetaSegment.y)) {
                     const segmentDistance = Math.sqrt((newHead.x - vegetaSegment.x) ** 2 + (newHead.y - vegetaSegment.y) ** 2);
-                    if (segmentDistance < this.snakeSize + this.aiSnake.segmentSize) {
+                    const collisionRadius = (this.snakeSize + this.aiSnake.segmentSize) * 0.9;
+                    
+                    if (segmentDistance < collisionRadius) {
                         console.log('Son Goku collided with Vegeta\'s body! Battle ended! - STOPPING GAME IMMEDIATELY');
                         this.isRunning = false;
                         cancelAnimationFrame(this.animationId);
@@ -925,9 +929,6 @@ class SnakeGame {
             window.gameUI.showGameOver(gameData); 
         } else if (gameUI && gameUI.showGameOver) {
             gameUI.showGameOver(gameData);
-        } else if (i === this.snake.length - 1) {
-                this.renderGokuTail(segment.x, segment.y, alpha, i);
-            } else {
             console.error('gameUI.showGameOver not available! Trying fallback...');
             // Fallback: Force show game over screen directly
             const gameOverScreen = document.getElementById('game-over-screen');
@@ -991,15 +992,21 @@ class SnakeGame {
         this.ctx.save();
         
         // Enhanced Saiyan tail - larger and more prominent
-        const tailLength = 35;
-        const tailWidth = 8;
+        const tailLength = 45;
+        const tailWidth = 10;
         
         // Calculate tail direction (opposite of movement direction)
         let tailDirection = this.direction + Math.PI;
         
-        // Add natural wave motion to the tail
-        const time = Date.now() * 0.003;
-        const waveOffset = Math.sin(time + index * 0.5) * 0.8;
+        // Enhanced wave motion - more pronounced and flowing
+        const time = Date.now() * 0.004;
+        const waveIntensity = 1.2 + (this.waveAmplitude || 0) * 0.2;
+        
+        // Multi-layered wave motion for natural tail movement
+        const primaryWave = Math.sin(time + index * 0.8) * waveIntensity;
+        const secondaryWave = Math.sin(time * 1.5 + index * 0.3) * 0.6;
+        const waveOffset = primaryWave + secondaryWave;
+        
         tailDirection += waveOffset;
         
         // Draw fluffy Saiyan tail with gradient
@@ -1030,28 +1037,56 @@ class SnakeGame {
         const controlX1 = x + Math.cos(tailDirection + 0.5) * tailLength * 0.4;
         const controlY1 = y + Math.sin(tailDirection + 0.5) * tailLength * 0.4;
         
-        // Draw main tail curve
+        // Draw multiple tail segments for wave-like motion
+        const numTailSegments = 8;
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
-        this.ctx.quadraticCurveTo(controlX1, controlY1, tailEndX, tailEndY);
+        
+        // Create flowing tail with multiple segments
+        for (let i = 0; i < numTailSegments; i++) {
+            const segmentProgress = i / numTailSegments;
+            const segmentLength = tailLength * segmentProgress;
+            
+            // Calculate wave motion for each segment
+            const segmentWave = Math.sin(time + index * 0.5 + i * 0.4) * (waveIntensity * (1 - segmentProgress * 0.5));
+            const segmentDirection = tailDirection + segmentWave;
+            
+            const segmentX = x + Math.cos(segmentDirection) * segmentLength;
+            const segmentY = y + Math.sin(segmentDirection) * segmentLength;
+            
+            if (i === 0) {
+                this.ctx.moveTo(x, y);
+            } else {
+                this.ctx.lineTo(segmentX, segmentY);
+            }
+        }
         this.ctx.stroke();
         
-        // Draw tail tip (fluffy end)
+        // Draw enhanced tail tip (fluffy end)
         this.ctx.fillStyle = '#654321';
         this.ctx.beginPath();
-        this.ctx.arc(tailEndX, tailEndY, tailWidth * 1.2, 0, Math.PI * 2);
+        this.ctx.arc(tailEndX, tailEndY, tailWidth * 1.3, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // Add some fur texture
-        for (let i = 0; i < 5; i++) {
-            const angle = (Math.PI * 2 / 5) * i;
-            const furX = tailEndX + Math.cos(angle) * tailWidth * 0.8;
-            const furY = tailEndY + Math.sin(angle) * tailWidth * 0.8;
+        // Add enhanced fur texture with wave motion
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 / 6) * i;
+            const furWave = Math.sin(time * 2 + i * 0.5) * 0.5;
+            const furX = tailEndX + Math.cos(angle + furWave) * tailWidth * 0.9;
+            const furY = tailEndY + Math.sin(angle + furWave) * tailWidth * 0.9;
             
             this.ctx.beginPath();
-            this.ctx.arc(furX, furY, 2, 0, Math.PI * 2);
+            this.ctx.arc(furX, furY, 2.5, 0, Math.PI * 2);
             this.ctx.fill();
         }
+        
+        // Add tail wave ripple effect
+        this.ctx.strokeStyle = 'rgba(139, 69, 19, 0.3)';
+        this.ctx.lineWidth = 2;
+        const rippleRadius = tailWidth * 2 + Math.sin(time * 3) * 3;
+        this.ctx.beginPath();
+        this.ctx.arc(tailEndX, tailEndY, rippleRadius, 0, Math.PI * 2);
+        this.ctx.stroke();
         
         this.ctx.restore();
     }

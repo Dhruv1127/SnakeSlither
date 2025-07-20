@@ -224,14 +224,21 @@ class AISnake {
     }
     
     checkCollisions() {
-        // Check collision with player snake (Goku)
+        if (!this.game.isRunning || this.segments.length === 0 || this.regenerating) return;
+        
+        const head = this.segments[0];
+        if (!head || !isFinite(head.x) || !isFinite(head.y)) return;
+        
+        // Enhanced collision detection with player snake (Goku)
         if (this.game.snake && this.game.snake.length > 0 && this.segments.length > 0) {
             const vegetaHead = this.segments[0];
             const gokuHead = this.game.snake[0];
             
-            if (vegetaHead && gokuHead) {
+            if (vegetaHead && gokuHead && isFinite(gokuHead.x) && isFinite(gokuHead.y)) {
                 const distance = this.getDistance(vegetaHead, gokuHead);
-                if (distance < this.segmentSize + this.game.snakeSize) {
+                const collisionRadius = (this.segmentSize + this.game.snakeSize) * 0.85; // Better collision accuracy
+                
+                if (distance < collisionRadius) {
                     console.log('Vegeta collided with Son Goku! Battle ended! - STOPPING GAME IMMEDIATELY');
                     this.game.isRunning = false;
                     cancelAnimationFrame(this.game.animationId);
@@ -242,9 +249,9 @@ class AISnake {
                 // Check collision with Goku's body segments
                 for (let i = 1; i < this.game.snake.length; i++) {
                     const gokuSegment = this.game.snake[i];
-                    if (gokuSegment) {
+                    if (gokuSegment && isFinite(gokuSegment.x) && isFinite(gokuSegment.y)) {
                         const segmentDistance = this.getDistance(vegetaHead, gokuSegment);
-                        if (segmentDistance < this.segmentSize + this.game.snakeSize) {
+                        if (segmentDistance < collisionRadius) {
                             console.log('Vegeta collided with Son Goku\'s body! Battle ended! - STOPPING GAME IMMEDIATELY');
                             this.game.isRunning = false;
                             cancelAnimationFrame(this.game.animationId);
@@ -372,9 +379,9 @@ class AISnake {
             ctx.arc(segment.x, waveY, segment.size, 0, Math.PI * 2);
             ctx.fill();
             
-            // Special rendering for tail - only on the last segment
-            if (i === this.segments.length - 1 && this.segments.length > 1) {
-                this.renderVegetaTail(ctx, segment.x, waveY, alpha, i);
+            // Render Vegeta's Saiyan tail on last segment
+            if (i === this.segments.length - 1) {
+                this.renderVegetaTail(segment.x, segment.y, alpha, i, ctx);
             }
             
             // Draw eyes on head
@@ -400,45 +407,6 @@ class AISnake {
         
         ctx.restore();
     }
-
-    renderVegetaTail(ctx, x, y, alpha, index) {
-        // Ensure valid coordinates
-        if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
-        
-        ctx.save();
-        
-        // Vegeta's royal tail - more elegant than Goku's
-        const tailLength = 30;
-        const tailWidth = 8;
-        
-        // Calculate tail direction (opposite of movement)
-        let tailDirection = this.direction + Math.PI;
-        
-        // Add regal wave motion to Vegeta's tail
-        const waveOffset = Math.sin(Date.now() * 0.004 + index) * 0.4;
-        tailDirection += waveOffset;
-        
-        // Draw royal Saiyan tail with darker color
-        ctx.strokeStyle = '#4A4A4A'; // Dark gray for Vegeta's tail
-        ctx.fillStyle = '#4A4A4A';
-        ctx.lineWidth = tailWidth;
-        ctx.lineCap = 'round';
-        ctx.globalAlpha = Math.max(0.5, alpha);
-        
-        // Draw tail curve - more curved than Goku's
-        const tailEndX = x + Math.cos(tailDirection) * tailLength;
-        const tailEndY = y + Math.sin(tailDirection) * tailLength;
-        
-        // Control points for S-curve (more royal shape)
-        const control1X = x + Math.cos(tailDirection + 0.6) * tailLength * 0.5;
-        const control1Y = y + Math.sin(tailDirection + 0.6) * tailLength * 0.5;
-        const control2X = x + Math.cos(tailDirection - 0.4) * tailLength * 0.8;
-        const control2Y = y + Math.sin(tailDirection - 0.4) * tailLength * 0.8;
-        
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.bezierCurveTo(control1X, control1Y, control2X, control2Y, tailEndX, tailEndY);
-        ctx.stroke();
         
         // Draw royal tail tip (more refined than Goku's)
         ctx.fillStyle = '#333333';
@@ -709,5 +677,103 @@ class AISnake {
             ctx.fill();
             ctx.restore();
         });
+    }
+    
+    renderVegetaTail(x, y, alpha, index, ctx) {
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y) || !isFinite(alpha)) return;
+        
+        ctx.save();
+        
+        // Enhanced Saiyan Prince tail - darker and more regal
+        const tailLength = 42;
+        const tailWidth = 9;
+        
+        // Calculate tail direction (opposite of movement direction)
+        let tailDirection = this.direction + Math.PI;
+        
+        // Enhanced wave motion - similar to Goku but with royal authority
+        const time = Date.now() * 0.0035; // Slightly different timing
+        const waveIntensity = 1.1 + (this.waveAmplitude || 0) * 0.15;
+        
+        // Multi-layered wave motion for natural tail movement
+        const primaryWave = Math.sin(time + index * 0.7) * waveIntensity;
+        const secondaryWave = Math.sin(time * 1.3 + index * 0.4) * 0.5;
+        const waveOffset = primaryWave + secondaryWave;
+        
+        tailDirection += waveOffset;
+        
+        // Draw fluffy Saiyan Prince tail with dark gradient
+        const gradient = ctx.createLinearGradient(
+            x, y, 
+            x + Math.cos(tailDirection) * tailLength, 
+            y + Math.sin(tailDirection) * tailLength
+        );
+        gradient.addColorStop(0, '#2E2E2E'); // Dark gray at base
+        gradient.addColorStop(0.7, '#4A4A4A'); // Medium gray
+        gradient.addColorStop(1, '#1A1A1A'); // Almost black at tip
+        
+        ctx.strokeStyle = gradient;
+        ctx.fillStyle = gradient;
+        ctx.lineWidth = tailWidth;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = Math.max(0.7, alpha); // More prominent for royal presence
+        
+        // Calculate tail end position
+        const tailEndX = x + Math.cos(tailDirection + waveOffset * 0.5) * tailLength;
+        const tailEndY = y + Math.sin(tailDirection + waveOffset * 0.5) * tailLength;
+        
+        // Draw multiple tail segments for wave-like motion
+        const numTailSegments = 8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        
+        // Create flowing tail with multiple segments
+        for (let i = 0; i < numTailSegments; i++) {
+            const segmentProgress = i / numTailSegments;
+            const segmentLength = tailLength * segmentProgress;
+            
+            // Calculate wave motion for each segment with royal authority
+            const segmentWave = Math.sin(time + index * 0.4 + i * 0.3) * (waveIntensity * (1 - segmentProgress * 0.4));
+            const segmentDirection = tailDirection + segmentWave;
+            
+            const segmentX = x + Math.cos(segmentDirection) * segmentLength;
+            const segmentY = y + Math.sin(segmentDirection) * segmentLength;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(segmentX, segmentY);
+            }
+        }
+        ctx.stroke();
+        
+        // Draw enhanced royal tail tip
+        ctx.fillStyle = '#1A1A1A';
+        ctx.beginPath();
+        ctx.arc(tailEndX, tailEndY, tailWidth * 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add enhanced fur texture with electric energy
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 / 6) * i;
+            const furWave = Math.sin(time * 1.8 + i * 0.6) * 0.4;
+            const furX = tailEndX + Math.cos(angle + furWave) * tailWidth * 0.8;
+            const furY = tailEndY + Math.sin(angle + furWave) * tailWidth * 0.8;
+            
+            ctx.beginPath();
+            ctx.arc(furX, furY, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Add royal energy ripple effect
+        ctx.strokeStyle = 'rgba(26, 35, 126, 0.4)'; // Royal blue energy
+        ctx.lineWidth = 2;
+        const rippleRadius = tailWidth * 1.8 + Math.sin(time * 2.5) * 2;
+        ctx.beginPath();
+        ctx.arc(tailEndX, tailEndY, rippleRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
     }
 }
