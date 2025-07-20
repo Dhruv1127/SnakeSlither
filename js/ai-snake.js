@@ -367,13 +367,14 @@ class AISnake {
             // Add wave motion to body
             const waveY = segment.y + Math.sin(Date.now() * 0.003 + i * 0.5) * 2;
             
-            // Special rendering for tail
-            if (i === this.segments.length - 1) {
+            // Render normal body segment
+            ctx.beginPath();
+            ctx.arc(segment.x, waveY, segment.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Special rendering for tail - only on the last segment
+            if (i === this.segments.length - 1 && this.segments.length > 1) {
                 this.renderVegetaTail(ctx, segment.x, waveY, alpha, i);
-            } else {
-                ctx.beginPath();
-                ctx.arc(segment.x, waveY, segment.size, 0, Math.PI * 2);
-                ctx.fill();
             }
             
             // Draw eyes on head

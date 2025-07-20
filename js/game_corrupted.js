@@ -686,7 +686,9 @@ class SnakeGame {
         } else if (this.settings.theme === 'retro') {
             gradient.addColorStop(0, '#3d2820');
             gradient.addColorStop(1, '#2d1810');
-        } else {
+        } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
+            } else {
             gradient.addColorStop(0, '#1a1a1a');
             gradient.addColorStop(1, '#0a0a0a');
         }
@@ -708,19 +710,49 @@ class SnakeGame {
             
             if (isHead) {
                 this.renderSnakeHead(segment.x, segment.y);
+            } else if (i === this.snake.length - 1) {
+                this.renderGokuTail(segment.x, segment.y, alpha, i);
             } else {
-                // Render normal body segment first
                 this.renderSnakeSegment(segment.x, segment.y, alpha, i);
-                
-                // Then render tail on the last segment if snake has grown
-                if (i === this.snake.length - 1 && this.snake.length > 2) {
-                    this.renderGokuTail(segment.x, segment.y, alpha, i);
-                }
             }
         }
         
         this.ctx.restore();
     }
+
+    renderSnakeHead(x, y) {
+        // Ensure valid coordinates
+        if (!isFinite(x) || !isFinite(y)) return;
+        
+        this.ctx.save();
+        this.ctx.fillStyle = this.getSnakeHeadColor();
+        this.ctx.shadowColor = this.getSnakeColor();
+        this.ctx.shadowBlur = 15;
+        
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, this.snakeSize, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Draw eyes
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillStyle = '#000000';
+        const eyeOffset = this.snakeSize * 0.4;
+        const eyeSize = 2;
+        
+        // Ensure direction is valid
+        const dir = isFinite(this.direction) ? this.direction : 0;
+        
+        const eyeX1 = x + Math.cos(dir - 0.5) * eyeOffset;
+        const eyeY1 = y + Math.sin(dir - 0.5) * eyeOffset;
+        const eyeX2 = x + Math.cos(dir + 0.5) * eyeOffset;
+        const eyeY2 = y + Math.sin(dir + 0.5) * eyeOffset;
+        
+        this.ctx.beginPath();
+        this.ctx.arc(eyeX1, eyeY1, eyeSize, 0, Math.PI * 2);
+        this.ctx.arc(eyeX2, eyeY2, eyeSize, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        this.ctx.restore();
     }
 
     renderSnakeSegment(x, y, alpha, index) {
