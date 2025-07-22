@@ -173,6 +173,51 @@ class EdgeCompatibility {
             reducedAnimations: false
         };
     }
+    
+    // Enhanced rendering methods for Edge compatibility
+    renderEdgeCompatibleSnake(ctx, x, y, size, color, isHead = false) {
+        if (!this.isEdge) return false; // Let normal rendering handle it
+        
+        ctx.save();
+        
+        // Use brighter colors for better visibility in Edge
+        if (isHead) {
+            ctx.fillStyle = '#ff6b35'; // Bright orange for Goku's head
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 2;
+        } else {
+            ctx.fillStyle = '#ff8c42'; // Slightly different for body
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 1;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+        return true; // Handled by Edge compatibility
+    }
+    
+    renderEdgeCompatibleFood(ctx, x, y, size, color) {
+        if (!this.isEdge) return false; // Let normal rendering handle it
+        
+        ctx.save();
+        
+        // Use bright, high-contrast colors for food in Edge
+        ctx.fillStyle = '#00ff00'; // Bright green
+        ctx.strokeStyle = '#ffffff'; // White border  
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+        return true; // Handled by Edge compatibility
+    }
 }
 
 // Create global instance

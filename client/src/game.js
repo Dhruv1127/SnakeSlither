@@ -504,15 +504,37 @@ class SnakeGame {
             y: head.y + Math.sin(this.direction) * moveDistance
         };
         
-        // Check wall collision
-        if (newHead.x < this.snakeSize || newHead.x > this.canvasSize - this.snakeSize || 
-            newHead.y < this.snakeSize || newHead.y > this.canvasSize - this.snakeSize) {
-            console.log('Wall collision detected - STOPPING GAME IMMEDIATELY');
-            this.isRunning = false;
-            cancelAnimationFrame(this.animationId);
-            this.particles.createWallHitEffect(newHead.x, newHead.y);
-            this.gameOver(false, 'Hit wall');
-            return;
+        // Check wall collision with enhanced Edge compatibility
+        const wallMargin = this.snakeSize + 2; // Normal margin
+        const edgeMargin = this.snakeSize + 20; // Extra large margin for Edge
+        const margin = (window.edgeCompatibility && window.edgeCompatibility.isEdge) ? edgeMargin : wallMargin;
+        
+        if (newHead.x < margin || newHead.x > this.canvasSize - margin || 
+            newHead.y < margin || newHead.y > this.canvasSize - margin) {
+            
+            // Additional safety check for Edge
+            if (window.edgeCompatibility && window.edgeCompatibility.isEdge) {
+                const centerX = this.canvasSize / 2;
+                const centerY = this.canvasSize / 2;
+                const distanceFromCenter = Math.sqrt((newHead.x - centerX) ** 2 + (newHead.y - centerY) ** 2);
+                
+                // If snake is still close to center or game just started, ignore collision
+                const gameJustStarted = this.gameTime < 3; // First 3 seconds
+                if (distanceFromCenter < this.canvasSize * 0.35 || gameJustStarted) {
+                    console.log('Edge: Preventing false wall collision during game start');
+                    // Clamp to safe boundaries - keep snake well within bounds
+                    newHead.x = Math.max(margin + 10, Math.min(this.canvasSize - margin - 10, newHead.x));
+                    newHead.y = Math.max(margin + 10, Math.min(this.canvasSize - margin - 10, newHead.y));
+                } else {
+                    console.log('Wall collision detected (Edge)');
+                    this.gameOver(false, 'Hit wall');
+                    return;
+                }
+            } else {
+                console.log('Wall collision detected');
+                this.gameOver(false, 'Hit wall');
+                return;
+            }
         }
         
         // Check self collision (skip first few segments)
