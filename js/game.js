@@ -95,6 +95,20 @@ class SnakeGame {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         
+        // Force canvas repaint for Chrome
+        this.canvas.style.display = 'block';
+        this.canvas.style.visibility = 'visible';
+        
+        // Set proper pixel ratio for high DPI displays
+        const pixelRatio = window.devicePixelRatio || 1;
+        if (pixelRatio > 1) {
+            this.canvas.style.width = this.canvasSize + 'px';
+            this.canvas.style.height = this.canvasSize + 'px';
+            this.canvas.width = this.canvasSize * pixelRatio;
+            this.canvas.height = this.canvasSize * pixelRatio;
+            ctx.scale(pixelRatio, pixelRatio);
+        }
+        
         console.log(`Canvas resized: ${this.canvasSize}x${this.canvasSize} (smooth movement)`);
     }
 
@@ -773,6 +787,15 @@ class SnakeGame {
     }
 
     render() {
+        // Ensure valid canvas context
+        if (!this.ctx || !this.canvas) return;
+        
+        // Force Chrome to recognize canvas changes
+        this.ctx.save();
+        
+        // Clear entire canvas explicitly for Chrome
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
         // Clear canvas with gradient background
         this.renderBackground();
         
@@ -785,8 +808,18 @@ class SnakeGame {
         // Render snake with smooth segments
         this.renderSnake();
         
+        // Render AI snake
+        if (this.aiSnake) {
+            this.aiSnake.render(this.ctx);
+        }
+        
         // Render particles
         this.particles.render();
+        
+        this.ctx.restore();
+        
+        // Force canvas update in Chrome
+        this.canvas.style.transform = 'translateZ(0)';
     }
 
     renderBackground() {
