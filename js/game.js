@@ -17,7 +17,7 @@ class SnakeGame {
         this.gameSpeed = 4; // Pixels per frame for smooth movement
         
         // Canvas sizing
-        this.canvasSize = 400; // Base size
+        this.canvasSize = 500; // Base size - increased for better visibility
         this.resizeCanvas();
         
         // Snake properties for smooth movement with wave mechanics
@@ -79,11 +79,21 @@ class SnakeGame {
 
     resizeCanvas() {
         // Calculate canvas size for smooth movement (no grid constraint)
-        const baseSize = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9, 600);
-        this.canvasSize = baseSize;
+        const maxWidth = Math.min(window.innerWidth * 0.85, 700);
+        const maxHeight = Math.min(window.innerHeight * 0.8, 700);
+        this.canvasSize = Math.min(maxWidth, maxHeight);
         
         this.canvas.width = this.canvasSize;
         this.canvas.height = this.canvasSize;
+        
+        // Set CSS size for proper display scaling
+        this.canvas.style.width = this.canvasSize + 'px';
+        this.canvas.style.height = this.canvasSize + 'px';
+        
+        // Improve rendering quality for Chrome
+        const ctx = this.canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         
         console.log(`Canvas resized: ${this.canvasSize}x${this.canvasSize} (smooth movement)`);
     }
@@ -109,16 +119,21 @@ class SnakeGame {
     handleKeyPress(e) {
         if (!this.isRunning || this.isPaused) return;
         
-        const key = e.code;
+        const key = e.code || e.key; // Fallback for browser compatibility
         const settings = this.settings;
         
+        // Prevent default behavior for game keys
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].includes(key)) {
+            e.preventDefault();
+        }
+        
         // Special abilities
-        if (key === 'Space' && this.specialAbilities) {
+        if ((key === 'Space' || key === ' ') && this.specialAbilities) {
             this.specialAbilities.activateGokuSpeedBoost();
             return;
         }
         
-        if ((key === 'ShiftLeft' || key === 'ShiftRight') && this.specialAbilities) {
+        if ((key === 'ShiftLeft' || key === 'ShiftRight' || key === 'Shift') && this.specialAbilities) {
             this.specialAbilities.launchGokuPowerBall();
             return;
         }
@@ -157,6 +172,14 @@ class SnakeGame {
         this.isMouseControlling = false;
         e.preventDefault();
         console.log('Key pressed:', key, 'Target direction:', this.targetDirection);
+        
+        // Add visual feedback for Chrome users
+        if (this.canvas) {
+            this.canvas.style.borderColor = '#00ff00';
+            setTimeout(() => {
+                if (this.canvas) this.canvas.style.borderColor = 'var(--accent-primary)';
+            }, 100);
+        }
     }
 
     handleMouseMove(e) {
@@ -347,9 +370,7 @@ class SnakeGame {
         
         if (attempts < 100) {
             this.food = food;
-        } else if (i === this.snake.length - 1) {
-                this.renderGokuTail(segment.x, segment.y, alpha, i);
-            } else {
+        } else {
             // No valid positions - player wins!
             this.gameOver(true);
         }
