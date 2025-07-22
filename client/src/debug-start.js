@@ -14,8 +14,49 @@
             // Start the game after a short delay
             setTimeout(() => {
                 console.log('Debug: Starting game automatically');
-                window.gameUI.startGame();
-            }, 2000); // Wait 2 seconds after game loads
+                // Click the start game button to go through the normal flow
+                const startBtn = document.getElementById('play-btn');
+                if (startBtn) {
+                    console.log('Debug: Clicking Start Game button');
+                    startBtn.click();
+                    
+                    // Auto-select classic mode after a brief delay
+                    setTimeout(() => {
+                        const classicBtn = document.querySelector('[data-mode="classic"]');
+                        if (classicBtn) {
+                            console.log('Debug: Selecting Classic mode');
+                            classicBtn.click();
+                            
+                            // Auto-continue to levels
+                            setTimeout(() => {
+                                const continueBtn = document.getElementById('continue-to-levels-btn');
+                                if (continueBtn && !continueBtn.disabled) {
+                                    console.log('Debug: Continuing to levels');
+                                    continueBtn.click();
+                                    
+                                    // Auto-select level 1
+                                    setTimeout(() => {
+                                        const level1Btn = document.querySelector('[data-level="1"]');
+                                        if (level1Btn) {
+                                            console.log('Debug: Selecting Level 1');
+                                            level1Btn.click();
+                                            
+                                            // Start the actual game
+                                            setTimeout(() => {
+                                                const startGameBtn = document.getElementById('start-game-btn');
+                                                if (startGameBtn && !startGameBtn.disabled) {
+                                                    console.log('Debug: Starting the game');
+                                                    startGameBtn.click();
+                                                }
+                                            }, 500);
+                                        }
+                                    }, 500);
+                                }
+                            }, 500);
+                        }
+                    }, 500);
+                }
+            }, 3000); // Wait 3 seconds after game loads
         } else {
             // Try again in 100ms
             setTimeout(waitForGameReady, 100);
