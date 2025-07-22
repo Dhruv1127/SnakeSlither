@@ -9,8 +9,8 @@ class SnakeGame {
             return;
         }
         
-        // Get 2D context with Edge compatibility
-        this.ctx = window.edgeCompatibility ? 
+        // Get 2D context with Edge compatibility only for Edge
+        this.ctx = (window.edgeCompatibility && window.edgeCompatibility.isEdge) ? 
             window.edgeCompatibility.getCompatibleContext(this.canvas) : 
             this.canvas.getContext('2d');
             
@@ -253,6 +253,7 @@ class SnakeGame {
     }
 
     start(gameMode = 'classic', level = 1) {
+        console.log(`Starting Snake Slither game: ${gameMode} mode, level ${level}`);
         this.gameMode = gameMode;
         this.gameLevel = level;
         this.isRunning = true;
@@ -445,13 +446,14 @@ class SnakeGame {
             this.lastRenderTime = currentTime || Date.now();
         }
         
-        // Calculate delta time with Edge compatibility
+        // Calculate delta time with Edge compatibility only for Edge
         let deltaTime, normalizedTime;
-        if (window.edgeCompatibility) {
+        if (window.edgeCompatibility && window.edgeCompatibility.isEdge) {
             const timeData = window.edgeCompatibility.normalizeTime(currentTime, this.lastRenderTime);
             deltaTime = timeData.deltaTime;
             normalizedTime = timeData.normalizedTime;
         } else {
+            // Normal timing for all other browsers
             deltaTime = (currentTime - this.lastRenderTime) / 16.67; // Normalize to 60fps
             normalizedTime = currentTime;
             
@@ -704,13 +706,14 @@ class SnakeGame {
         // Edge compatibility check
         if (!this.ctx) return;
         
-        // Use Edge compatibility for background rendering
-        if (window.edgeCompatibility) {
+        // Use Edge compatibility only for Edge browsers
+        if (window.edgeCompatibility && window.edgeCompatibility.isEdge) {
             const theme = this.settings ? this.settings.theme : 'dark';
             window.edgeCompatibility.createCompatibleGradient(
                 this.ctx, this.canvasSize, this.canvasSize, theme
             );
         } else {
+            // Normal rendering for all other browsers
             this.renderBackground();
         }
         
@@ -723,10 +726,8 @@ class SnakeGame {
         // Render snake with smooth segments
         this.renderSnake();
         
-        // Render particles (skip for Edge to improve performance)
-        if (window.edgeCompatibility && !window.edgeCompatibility.shouldSkipParticles()) {
-            this.particles.render();
-        } else if (!window.edgeCompatibility) {
+        // Render particles (skip only for Edge)
+        if (!window.edgeCompatibility || !window.edgeCompatibility.isEdge) {
             this.particles.render();
         }
     }

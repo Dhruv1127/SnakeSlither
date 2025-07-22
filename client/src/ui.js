@@ -272,9 +272,17 @@ class GameUI {
     }
 
     startGame() {
+        console.log(`Starting game with mode: ${this.selectedMode}, level: ${this.selectedLevel}`);
         this.hideAllScreens();
         if (window.game && this.selectedMode && this.selectedLevel) {
+            console.log('Game found, calling start method');
             window.game.start(this.selectedMode, this.selectedLevel);
+        } else {
+            console.error('Cannot start game:', {
+                game: !!window.game,
+                selectedMode: this.selectedMode,
+                selectedLevel: this.selectedLevel
+            });
         }
     }
 
