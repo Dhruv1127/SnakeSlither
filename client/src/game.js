@@ -2,7 +2,27 @@
 class SnakeGame {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
-        this.ctx = this.canvas.getContext('2d');
+        
+        // Edge compatibility fix - ensure canvas exists and is properly initialized
+        if (!this.canvas) {
+            console.error('Canvas element not found!');
+            return;
+        }
+        
+        // Get 2D context with Edge compatibility
+        this.ctx = window.edgeCompatibility ? 
+            window.edgeCompatibility.getCompatibleContext(this.canvas) : 
+            this.canvas.getContext('2d');
+            
+        if (!this.ctx) {
+            console.error('Canvas 2D context not supported!');
+            return;
+        }
+        
+        // Browser compatibility detection
+        this.isEdge = window.edgeCompatibility ? window.edgeCompatibility.isEdge : false;
+        this.edgeSettings = window.edgeCompatibility ? 
+            window.edgeCompatibility.getOptimizedRenderSettings() : {};
         
         // Game state
         this.isRunning = false;
@@ -410,10 +430,36 @@ class SnakeGame {
     gameLoop(currentTime = 0) {
         if (!this.isRunning) return;
         
-        this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
+        // Use compatible requestAnimationFrame with fallback
+        const rafCallback = (time) => this.gameLoop(time);
         
-        // Calculate delta time for smooth movement
-        const deltaTime = (currentTime - this.lastRenderTime) / 16.67; // Normalize to 60fps
+        if (typeof requestAnimationFrame === 'function') {
+            this.animationId = requestAnimationFrame(rafCallback);
+        } else {
+            // Fallback for older browsers
+            this.animationId = setTimeout(() => rafCallback(Date.now()), 16);
+        }
+        
+        // Initialize lastRenderTime if not set
+        if (!this.lastRenderTime) {
+            this.lastRenderTime = currentTime || Date.now();
+        }
+        
+        // Calculate delta time with Edge compatibility
+        let deltaTime, normalizedTime;
+        if (window.edgeCompatibility) {
+            const timeData = window.edgeCompatibility.normalizeTime(currentTime, this.lastRenderTime);
+            deltaTime = timeData.deltaTime;
+            normalizedTime = timeData.normalizedTime;
+        } else {
+            deltaTime = (currentTime - this.lastRenderTime) / 16.67; // Normalize to 60fps
+            normalizedTime = currentTime;
+            
+            // Ensure valid delta time
+            if (!isFinite(deltaTime) || deltaTime <= 0 || isNaN(deltaTime)) {
+                deltaTime = 1;
+            }
+        }
         
         if (!this.isPaused) {
             this.update(deltaTime);
@@ -421,7 +467,7 @@ class SnakeGame {
         
         // Always render for smooth animations
         this.render();
-        this.lastRenderTime = currentTime;
+        this.lastRenderTime = normalizedTime || currentTime || Date.now();
     }
 
     update(deltaTime) {
@@ -655,8 +701,18 @@ class SnakeGame {
     }
 
     render() {
-        // Clear canvas with gradient background
-        this.renderBackground();
+        // Edge compatibility check
+        if (!this.ctx) return;
+        
+        // Use Edge compatibility for background rendering
+        if (window.edgeCompatibility) {
+            const theme = this.settings ? this.settings.theme : 'dark';
+            window.edgeCompatibility.createCompatibleGradient(
+                this.ctx, this.canvasSize, this.canvasSize, theme
+            );
+        } else {
+            this.renderBackground();
+        }
         
         // Render obstacles
         this.renderObstacles();
@@ -667,8 +723,12 @@ class SnakeGame {
         // Render snake with smooth segments
         this.renderSnake();
         
-        // Render particles
-        this.particles.render();
+        // Render particles (skip for Edge to improve performance)
+        if (window.edgeCompatibility && !window.edgeCompatibility.shouldSkipParticles()) {
+            this.particles.render();
+        } else if (!window.edgeCompatibility) {
+            this.particles.render();
+        }
     }
 
     renderBackground() {
