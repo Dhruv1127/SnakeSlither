@@ -816,7 +816,6 @@ class SnakeGame {
         
         this.ctx.restore();
     }
-    }
 
     renderSnakeSegment(x, y, alpha, index) {
         // Ensure valid coordinates
@@ -1319,9 +1318,7 @@ class SnakeGame {
             window.gameUI.showGameOver(gameData); 
         } else if (gameUI && gameUI.showGameOver) {
             gameUI.showGameOver(gameData);
-        } else if (i === this.snake.length - 1) {
-                this.renderGokuTail(segment.x, segment.y, alpha, i);
-            } else {
+        } else {
             console.error('gameUI.showGameOver not available! Trying fallback...');
             // Fallback: Force show game over screen directly
             const gameOverScreen = document.getElementById('game-over-screen');
